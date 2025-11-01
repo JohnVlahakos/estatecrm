@@ -172,36 +172,21 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   const getAppointmentById = useCallback((id: string) => appointments.find(a => a.id === id), [appointments]);
 
   const calculateMatchScore = useCallback((client: Client, property: Property): number => {
-    const normalizeLocation = (location: string): string[] => {
+    const normalizeLocation = (location: string): string => {
       return location
         .toLowerCase()
-        .replace(/[,;]/g, ' ')
-        .split(/\s+/)
-        .filter(part => part.length > 0)
-        .map(part => part.trim());
+        .trim()
+        .replace(/[,;.\s]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     };
 
     const calculateLocationMatch = (clientLocation: string, propertyLocation: string): number => {
-      const normalizeForExactMatch = (location: string): string => {
-        return location.toLowerCase().trim().replace(/[,;.]/g, '').replace(/\s+/g, ' ');
-      };
-
-      const clientNormalized = normalizeForExactMatch(clientLocation);
-      const propertyNormalized = normalizeForExactMatch(propertyLocation);
+      const clientNormalized = normalizeLocation(clientLocation);
+      const propertyNormalized = normalizeLocation(propertyLocation);
 
       if (clientNormalized === propertyNormalized) {
         return 8;
-      }
-
-      const clientParts = normalizeLocation(clientLocation);
-      const propertyParts = normalizeLocation(propertyLocation);
-
-      const allClientPartsMatched = clientParts.every(clientPart => 
-        propertyParts.some(propertyPart => propertyPart === clientPart)
-      );
-
-      if (allClientPartsMatched && clientParts.length > 0) {
-        return 7;
       }
 
       return 0;

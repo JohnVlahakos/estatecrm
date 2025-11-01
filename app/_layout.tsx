@@ -41,7 +41,15 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="admin-users" options={{ headerShown: false }} />
       <Stack.Screen name="admin-subscriptions" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-cities" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="admin-cities" 
+        options={{ 
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Manage Cities',
+          headerBackTitle: 'Back'
+        }} 
+      />
       <Stack.Screen name="subscription" options={{ headerShown: false }} />
       <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: "Client Details" }} />
       <Stack.Screen name="properties/[id]" options={{ headerShown: true, title: "Property Details" }} />

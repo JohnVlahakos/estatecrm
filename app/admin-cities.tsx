@@ -13,7 +13,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
 import { MapPin, Plus, Trash2, Edit2, X, Check } from 'lucide-react-native';
-import { router, Stack } from 'expo-router';
+
 import CityAutocomplete from '@/components/GooglePlacesAutocomplete';
 
 export default function AdminCitiesScreen() {
@@ -28,8 +28,13 @@ export default function AdminCitiesScreen() {
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   if (!isAdmin) {
-    router.replace('/settings');
-    return null;
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.emptyStateText}>Access Denied</Text>
+        </View>
+      </View>
+    );
   }
 
   const handleAddCity = async () => {
@@ -107,17 +112,6 @@ export default function AdminCitiesScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: 'Διαχείριση Πόλεων',
-          headerStyle: {
-            backgroundColor: Colors.card,
-          },
-          headerTintColor: Colors.text,
-          headerShadowVisible: false,
-        }}
-      />
-
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <MapPin size={24} color={Colors.primary} />
