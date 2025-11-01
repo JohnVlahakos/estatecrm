@@ -182,6 +182,8 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     };
 
     const calculateLocationMatch = (clientLocations: string[] | undefined, clientLocation: string | undefined, propertyLocation: string): number => {
+      if (!propertyLocation) return 0;
+      
       const propertyNormalized = normalizeLocation(propertyLocation);
       
       if (clientLocations && clientLocations.length > 0) {
@@ -191,6 +193,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
             return 8;
           }
         }
+        return 0;
       }
       
       if (clientLocation) {
@@ -198,6 +201,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
         if (clientNormalized === propertyNormalized) {
           return 8;
         }
+        return 0;
       }
 
       return 0;
@@ -220,10 +224,12 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
     if (client.desiredLocations && client.desiredLocations.length > 0) {
       maxScore += 8;
-      score += calculateLocationMatch(client.desiredLocations, undefined, property.location);
+      const locationScore = calculateLocationMatch(client.desiredLocations, undefined, property.location);
+      score += locationScore;
     } else if (client.desiredLocation) {
       maxScore += 8;
-      score += calculateLocationMatch(undefined, client.desiredLocation, property.location);
+      const locationScore = calculateLocationMatch(undefined, client.desiredLocation, property.location);
+      score += locationScore;
     }
 
     if (client.minSize !== undefined || client.maxSize !== undefined) {

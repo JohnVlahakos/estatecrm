@@ -1,6 +1,7 @@
 import { useCRM } from '@/contexts/CRMContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import Colors from '@/constants/colors';
-import { Plus, Search, MapPin, Edit2, SlidersHorizontal, X, Building2, Banknote, Maximize2, Home, Bed, Bath, Layers, Calendar, Minus, Clock, Bell, Upload, ImageIcon, Trash2 } from 'lucide-react-native';
+import { Plus, Search, MapPin, Edit2, SlidersHorizontal, X, Building2, Banknote, Maximize2, Home, Bed, Bath, Layers, Calendar, Minus, Clock, Bell, Upload, ImageIcon, Trash2, Check } from 'lucide-react-native';
 import React, { useState, useEffect } from 'react';
 import type { Property, PropertyFeatures, PropertyStatus, PropertyType } from '@/types';
 import { useLocalSearchParams } from 'expo-router';
@@ -34,6 +35,7 @@ interface PropertyFilters {
 
 export default function PropertiesScreen() {
   const { properties, addProperty, updateProperty, deleteProperty, isLoading } = useCRM();
+  const { cities } = useSettings();
   const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -104,6 +106,9 @@ export default function PropertiesScreen() {
     rentalMonths: '',
     rentalYears: '',
   });
+
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -325,12 +330,16 @@ export default function PropertiesScreen() {
       rentalYears: '',
     });
     setEditingProperty(null);
+    setShowLocationSelector(false);
+    setLocationSearchQuery('');
     setModalVisible(false);
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
     setEditingProperty(null);
+    setShowLocationSelector(false);
+    setLocationSearchQuery('');
     setNewProperty({
       title: '',
       type: 'apartment',
@@ -802,12 +811,56 @@ export default function PropertiesScreen() {
 
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Location *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter address or area"
-                  value={newProperty.location}
-                  onChangeText={(text) => setNewProperty({ ...newProperty, location: text })}
-                />
+                <TouchableOpacity
+                  style={styles.locationSelectorButton}
+                  onPress={() => setShowLocationSelector(!showLocationSelector)}
+                >
+                  <Text style={[styles.locationSelectorButtonText, !newProperty.location && styles.locationPlaceholder]}>
+                    {newProperty.location || 'Επιλέξτε τοποθεσία'}
+                  </Text>
+                </TouchableOpacity>
+                {showLocationSelector && (
+                  <View style={styles.locationSelectorContainer}>
+                    <View style={styles.locationSearchContainer}>
+                      <Search size={16} color={Colors.textLight} />
+                      <TextInput
+                        style={styles.locationSearchInput}
+                        placeholder="Αναζήτηση πόλης..."
+                        value={locationSearchQuery}
+                        onChangeText={setLocationSearchQuery}
+                        autoFocus
+                      />
+                    </View>
+                    <ScrollView style={styles.locationList}>
+                      {cities
+                        .filter(city => 
+                          city.toLowerCase().includes(locationSearchQuery.toLowerCase())
+                        )
+                        .sort()
+                        .map((city, index) => {
+                          const isSelected = newProperty.location === city;
+                          return (
+                            <TouchableOpacity
+                              key={`city-${index}`}
+                              style={[styles.locationItem, isSelected && styles.locationItemSelected]}
+                              onPress={() => {
+                                setNewProperty({ ...newProperty, location: city });
+                                setShowLocationSelector(false);
+                                setLocationSearchQuery('');
+                              }}
+                            >
+                              <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                                {isSelected && <Check size={16} color="#fff" />}
+                              </View>
+                              <Text style={[styles.locationItemText, isSelected && styles.locationItemTextSelected]}>
+                                {city}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
 
               <View style={styles.fieldContainer}>
@@ -1806,5 +1859,77 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.primary,
   },
-
+  locationSelectorButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    padding: 16,
+  },
+  locationSelectorButtonText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  locationPlaceholder: {
+    color: Colors.textLight,
+  },
+  locationSelectorContainer: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    marginTop: 12,
+    maxHeight: 300,
+  },
+  locationSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    paddingHorizontal: 16,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  locationSearchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text,
+    padding: 0,
+  },
+  locationList: {
+    maxHeight: 250,
+  },
+  locationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  locationItemSelected: {
+    backgroundColor: `${Colors.primary}15`,
+  },
+  locationItemText: {
+    fontSize: 15,
+    color: Colors.text,
+  },
+  locationItemTextSelected: {
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
 });
