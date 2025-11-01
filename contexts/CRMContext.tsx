@@ -182,30 +182,26 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     };
 
     const calculateLocationMatch = (clientLocation: string, propertyLocation: string): number => {
-      const clientParts = normalizeLocation(clientLocation);
-      const propertyParts = normalizeLocation(propertyLocation);
+      const normalizeForExactMatch = (location: string): string => {
+        return location.toLowerCase().trim().replace(/[,;.]/g, '').replace(/\s+/g, ' ');
+      };
 
-      if (clientLocation.toLowerCase().trim() === propertyLocation.toLowerCase().trim()) {
+      const clientNormalized = normalizeForExactMatch(clientLocation);
+      const propertyNormalized = normalizeForExactMatch(propertyLocation);
+
+      if (clientNormalized === propertyNormalized) {
         return 8;
       }
 
-      let matchedParts = 0;
-      for (const clientPart of clientParts) {
-        for (const propertyPart of propertyParts) {
-          if (propertyPart === clientPart) {
-            matchedParts++;
-            break;
-          }
-          if (propertyPart.includes(clientPart) || clientPart.includes(propertyPart)) {
-            matchedParts += 0.5;
-            break;
-          }
-        }
-      }
+      const clientParts = normalizeLocation(clientLocation);
+      const propertyParts = normalizeLocation(propertyLocation);
 
-      if (matchedParts > 0) {
-        const matchRatio = matchedParts / Math.max(clientParts.length, propertyParts.length);
-        return Math.round(matchRatio * 8);
+      const allClientPartsMatched = clientParts.every(clientPart => 
+        propertyParts.some(propertyPart => propertyPart === clientPart)
+      );
+
+      if (allClientPartsMatched && clientParts.length > 0) {
+        return 7;
       }
 
       return 0;
