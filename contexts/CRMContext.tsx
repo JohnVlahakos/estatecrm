@@ -172,6 +172,44 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   const getAppointmentById = useCallback((id: string) => appointments.find(a => a.id === id), [appointments]);
 
   const calculateMatchScore = useCallback((client: Client, property: Property): number => {
+    const normalizeLocation = (location: string): string[] => {
+      return location
+        .toLowerCase()
+        .replace(/[,;]/g, ' ')
+        .split(/\s+/)
+        .filter(part => part.length > 0)
+        .map(part => part.trim());
+    };
+
+    const calculateLocationMatch = (clientLocation: string, propertyLocation: string): number => {
+      const clientParts = normalizeLocation(clientLocation);
+      const propertyParts = normalizeLocation(propertyLocation);
+
+      if (clientLocation.toLowerCase().trim() === propertyLocation.toLowerCase().trim()) {
+        return 8;
+      }
+
+      let matchedParts = 0;
+      for (const clientPart of clientParts) {
+        for (const propertyPart of propertyParts) {
+          if (propertyPart === clientPart) {
+            matchedParts++;
+            break;
+          }
+          if (propertyPart.includes(clientPart) || clientPart.includes(propertyPart)) {
+            matchedParts += 0.5;
+            break;
+          }
+        }
+      }
+
+      if (matchedParts > 0) {
+        const matchRatio = matchedParts / Math.max(clientParts.length, propertyParts.length);
+        return Math.round(matchRatio * 8);
+      }
+
+      return 0;
+    };
     let score = 0;
     let maxScore = 0;
 
@@ -190,7 +228,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
     if (client.desiredLocation) {
       maxScore += 8;
-      if (property.location.toLowerCase().includes(client.desiredLocation.toLowerCase())) score += 8;
+      score += calculateLocationMatch(client.desiredLocation, property.location);
     }
 
     if (client.minSize !== undefined || client.maxSize !== undefined) {
