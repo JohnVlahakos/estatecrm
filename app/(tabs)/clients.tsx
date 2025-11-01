@@ -1,7 +1,7 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import Colors from '@/constants/colors';
-import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon } from 'lucide-react-native';
+import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon, Check } from 'lucide-react-native';
 import React, { useState, useMemo } from 'react';
 import type { Client, ClientPreferences, ClientStatus, ClientCategory, PropertyType } from '@/types';
 import { Image } from 'expo-image';
@@ -72,6 +72,7 @@ export default function ClientsScreen() {
     notes: '',
     desiredPropertyType: undefined as PropertyType | undefined,
     desiredLocation: '',
+    desiredLocations: [] as string[],
     minSize: '',
     maxSize: '',
     minBedrooms: '',
@@ -84,6 +85,7 @@ export default function ClientsScreen() {
 
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [locationQuery, setLocationQuery] = useState('');
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
 
   const filteredCities = useMemo(() => {
     if (!locationQuery.trim()) return [];
@@ -119,6 +121,7 @@ export default function ClientsScreen() {
       notes: client.notes,
       desiredPropertyType: client.desiredPropertyType,
       desiredLocation: client.desiredLocation || '',
+      desiredLocations: client.desiredLocations || [],
       minSize: client.minSize?.toString() || '',
       maxSize: client.maxSize?.toString() || '',
       minBedrooms: client.minBedrooms?.toString() || '',
@@ -146,6 +149,7 @@ export default function ClientsScreen() {
       budgetMin: newClient.budgetMin ? parseFloat(newClient.budgetMin) : undefined,
       budgetMax: newClient.budgetMax ? parseFloat(newClient.budgetMax) : undefined,
       desiredLocation: newClient.desiredLocation || undefined,
+      desiredLocations: newClient.desiredLocations.length > 0 ? newClient.desiredLocations : undefined,
     };
 
     if (editingClient) {
@@ -166,6 +170,7 @@ export default function ClientsScreen() {
       notes: '',
       desiredPropertyType: undefined,
       desiredLocation: '',
+      desiredLocations: [],
       minSize: '',
       maxSize: '',
       minBedrooms: '',
@@ -177,6 +182,7 @@ export default function ClientsScreen() {
     });
     setEditingClient(null);
     setShowMatchedProperties(false);
+    setShowLocationSelector(false);
     setModalVisible(false);
   };
 
@@ -184,6 +190,7 @@ export default function ClientsScreen() {
     setModalVisible(false);
     setEditingClient(null);
     setShowMatchedProperties(false);
+    setShowLocationSelector(false);
     setNewClient({
       name: '',
       phone: '',
@@ -196,6 +203,7 @@ export default function ClientsScreen() {
       notes: '',
       desiredPropertyType: undefined,
       desiredLocation: '',
+      desiredLocations: [],
       minSize: '',
       maxSize: '',
       minBedrooms: '',
@@ -566,45 +574,74 @@ export default function ClientsScreen() {
                   </View>
                 </View>
 
-                <View style={[styles.fieldContainer, { zIndex: showLocationSuggestions ? 1000 : 1 }]}>
-                  <Text style={styles.fieldLabel}>Επιθυμητή Τοποθεσία</Text>
-                  <View style={styles.autocompleteContainer}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="π.χ. Κέντρο, Γλυφάδα, Κηφισιά"
-                      value={newClient.desiredLocation}
-                      onChangeText={(text) => {
-                        setNewClient({ ...newClient, desiredLocation: text });
-                        setLocationQuery(text);
-                        setShowLocationSuggestions(text.length > 0);
-                      }}
-                      onFocus={() => {
-                        setLocationQuery(newClient.desiredLocation);
-                        setShowLocationSuggestions(newClient.desiredLocation.length > 0);
-                      }}
-                      onBlur={() => {
-                        setTimeout(() => setShowLocationSuggestions(false), 200);
-                      }}
-                    />
-                    {showLocationSuggestions && filteredCities.length > 0 && (
-                      <View style={styles.suggestionsContainer}>
-                        {filteredCities.map((city, index) => (
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>Επιθυμητές Τοποθεσίες</Text>
+                  <TouchableOpacity
+                    style={styles.locationSelectorButton}
+                    onPress={() => setShowLocationSelector(!showLocationSelector)}
+                  >
+                    <Text style={styles.locationSelectorButtonText}>
+                      {newClient.desiredLocations.length === 0 
+                        ? 'Επιλέξτε τοποθεσίες'
+                        : `${newClient.desiredLocations.length} τοποθεσίες επιλεγμένες`
+                      }
+                    </Text>
+                  </TouchableOpacity>
+                  {newClient.desiredLocations.length > 0 && (
+                    <View style={styles.selectedLocationsContainer}>
+                      {newClient.desiredLocations.map((location, index) => (
+                        <View key={`selected-${index}`} style={styles.locationChip}>
+                          <Text style={styles.locationChipText}>{location}</Text>
                           <TouchableOpacity
-                            key={`${city}-${index}`}
-                            style={styles.suggestionItem}
                             onPress={() => {
-                              setNewClient({ ...newClient, desiredLocation: city });
-                              setLocationQuery(city);
-                              setShowLocationSuggestions(false);
+                              setNewClient({
+                                ...newClient,
+                                desiredLocations: newClient.desiredLocations.filter((_, i) => i !== index)
+                              });
                             }}
                           >
-                            <MapPin size={16} color={Colors.textSecondary} />
-                            <Text style={styles.suggestionText}>{city}</Text>
+                            <Text style={styles.locationChipRemove}>×</Text>
                           </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {showLocationSelector && (
+                    <View style={styles.locationSelectorContainer}>
+                      <Text style={styles.locationSelectorTitle}>Διαθέσιμες Τοποθεσίες</Text>
+                      <ScrollView style={styles.locationList}>
+                        {cities.sort().map((city, index) => {
+                          const isSelected = newClient.desiredLocations.includes(city);
+                          return (
+                            <TouchableOpacity
+                              key={`city-${index}`}
+                              style={[styles.locationItem, isSelected && styles.locationItemSelected]}
+                              onPress={() => {
+                                if (isSelected) {
+                                  setNewClient({
+                                    ...newClient,
+                                    desiredLocations: newClient.desiredLocations.filter(l => l !== city)
+                                  });
+                                } else {
+                                  setNewClient({
+                                    ...newClient,
+                                    desiredLocations: [...newClient.desiredLocations, city]
+                                  });
+                                }
+                              }}
+                            >
+                              <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                                {isSelected && <Check size={16} color="#fff" />}
+                              </View>
+                              <Text style={[styles.locationItemText, isSelected && styles.locationItemTextSelected]}>
+                                {city}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
 
                 <View style={styles.fieldContainer}>
@@ -1405,5 +1442,94 @@ const styles = StyleSheet.create({
   suggestionText: {
     fontSize: 15,
     color: Colors.text,
+  },
+  locationSelectorButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    padding: 16,
+  },
+  locationSelectorButtonText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  selectedLocationsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  locationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  locationChipText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600' as const,
+  },
+  locationChipRemove: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: '700' as const,
+    lineHeight: 20,
+  },
+  locationSelectorContainer: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    marginTop: 12,
+    maxHeight: 300,
+  },
+  locationSelectorTitle: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  locationList: {
+    maxHeight: 250,
+  },
+  locationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  locationItemSelected: {
+    backgroundColor: `${Colors.primary}15`,
+  },
+  locationItemText: {
+    fontSize: 15,
+    color: Colors.text,
+  },
+  locationItemTextSelected: {
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 });

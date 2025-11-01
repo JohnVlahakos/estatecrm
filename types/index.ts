@@ -49,6 +49,7 @@ export interface Client {
   lastContact?: string;
   desiredPropertyType?: PropertyType;
   desiredLocation?: string;
+  desiredLocations?: string[];
   minSize?: number;
   maxSize?: number;
   minBedrooms?: number;
