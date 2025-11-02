@@ -745,7 +745,7 @@ export default function ClientsScreen() {
                         placeholder="Έως"
                         value={newClient.budgetMax}
                         keyboardType="numeric"
-                        onChangeText={(text) => setNewClient({ ...newClient, budgetMax: text })}
+                        onChangeText={(text) => setNewClient({ ...newClient, budgetMax: text, budget: text })}
                       />
                     </View>
                   </View>
