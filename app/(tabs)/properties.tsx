@@ -109,6 +109,7 @@ export default function PropertiesScreen() {
 
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -745,7 +746,15 @@ export default function PropertiesScreen() {
             activeOpacity={1} 
             onPress={handleCloseModal}
           />
-          <ScrollView style={styles.modalScrollView}>
+          <ScrollView 
+            style={styles.modalScrollView}
+            onScroll={(event) => {
+              const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+              const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+              setIsAtBottom(isBottom);
+            }}
+            scrollEventThrottle={16}
+          >
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>{editingProperty ? 'Edit Property' : 'Add New Property'}</Text>
 
@@ -1247,30 +1256,33 @@ export default function PropertiesScreen() {
                 />
               </View>
 
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={handleCloseModal}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                {editingProperty && (
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.deleteButton]}
-                    onPress={handleDeleteProperty}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.submitButton]}
-                  onPress={handleAddProperty}
-                >
-                  <Text style={styles.submitButtonText}>{editingProperty ? 'Save' : 'Add Property'}</Text>
-                </TouchableOpacity>
-              </View>
+              <View style={{ height: 80 }} />
             </View>
           </ScrollView>
+          <View style={[styles.modalButtonsFixed, isAtBottom && styles.modalButtonsStatic]}>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCloseModal}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              {editingProperty && (
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.deleteButton]}
+                  onPress={handleDeleteProperty}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.modalButton, styles.submitButton]}
+                onPress={handleAddProperty}
+              >
+                <Text style={styles.submitButtonText}>{editingProperty ? 'Save' : 'Add Property'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </View>
@@ -1501,10 +1513,32 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
+  modalButtonsFixed: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.card,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalButtonsStatic: {
+    position: 'relative' as const,
+    shadowOpacity: 0,
+    elevation: 0,
+    borderTopWidth: 0,
+  },
   modalButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
   },
   modalButton: {
     flex: 1,

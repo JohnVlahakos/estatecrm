@@ -90,6 +90,7 @@ export default function ClientsScreen() {
   const [locationQuery, setLocationQuery] = useState('');
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   const filteredCities = useMemo(() => {
     if (!locationQuery.trim()) return [];
@@ -404,7 +405,15 @@ export default function ClientsScreen() {
             onPress={handleCloseModal}
           />
           <View style={styles.modalContentWrapper}>
-              <ScrollView style={styles.modalContent}>
+              <ScrollView 
+                style={styles.modalContent}
+                onScroll={(event) => {
+                  const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+                  const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+                  setIsAtBottom(isBottom);
+                }}
+                scrollEventThrottle={16}
+              >
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{editingClient ? 'Edit Client' : 'Add New Client'}</Text>
                   {editingClient && (
@@ -938,6 +947,9 @@ export default function ClientsScreen() {
                   />
                 </View>
 
+                <View style={{ height: 80 }} />
+              </ScrollView>
+              <View style={[styles.modalButtonsFixed, isAtBottom && styles.modalButtonsStatic]}>
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.cancelButton]}
@@ -960,7 +972,7 @@ export default function ClientsScreen() {
                     <Text style={styles.submitButtonText}>{editingClient ? 'Save' : 'Add Client'}</Text>
                   </TouchableOpacity>
                 </View>
-              </ScrollView>
+              </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -1173,10 +1185,32 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
+  modalButtonsFixed: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.card,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalButtonsStatic: {
+    position: 'relative' as const,
+    shadowOpacity: 0,
+    elevation: 0,
+    borderTopWidth: 0,
+  },
   modalButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
   },
   modalButton: {
     flex: 1,
