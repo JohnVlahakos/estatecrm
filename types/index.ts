@@ -182,3 +182,9 @@ export interface UserSubscription {
   autoRenew: boolean;
   createdAt: string;
 }
+
+export interface MatchView {
+  propertyId: string;
+  buyerId: string;
+  viewedAt: string;
+}

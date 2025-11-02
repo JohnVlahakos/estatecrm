@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useCallback, useEffect, useState, useMemo } from 'react';
-import type { Client, Property, Appointment } from '@/types';
+import type { Client, Property, Appointment, MatchView } from '@/types';
 import { mockClients, mockProperties, mockAppointments } from '@/utils/mockData';
 import { schedulePropertyAvailabilityNotification, cancelScheduledNotification, sendNewMatchNotification, scheduleAppointmentNotification } from '@/utils/notifications';
 import { useNotificationBadges } from '@/contexts/NotificationBadgeContext';
@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   CLIENTS: '@crm_clients',
   PROPERTIES: '@crm_properties',
   APPOINTMENTS: '@crm_appointments',
+  MATCH_VIEWS: '@crm_match_views',
 };
 
 export const [CRMProvider, useCRM] = createContextHook(() => {
@@ -17,6 +18,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   const [clients, setClients] = useState<Client[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [matchViews, setMatchViews] = useState<MatchView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,10 +27,11 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [clientsData, propertiesData, appointmentsData] = await Promise.all([
+      const [clientsData, propertiesData, appointmentsData, matchViewsData] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.CLIENTS),
         AsyncStorage.getItem(STORAGE_KEYS.PROPERTIES),
         AsyncStorage.getItem(STORAGE_KEYS.APPOINTMENTS),
+        AsyncStorage.getItem(STORAGE_KEYS.MATCH_VIEWS),
       ]);
 
       if (clientsData) {
@@ -50,6 +53,10 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
       } else {
         setAppointments(mockAppointments);
         await AsyncStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(mockAppointments));
+      }
+
+      if (matchViewsData) {
+        setMatchViews(JSON.parse(matchViewsData));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -375,6 +382,35 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     }).length;
   }, [appointments]);
 
+  const markMatchAsViewed = useCallback(async (propertyId: string, buyerId: string) => {
+    const newView: MatchView = {
+      propertyId,
+      buyerId,
+      viewedAt: new Date().toISOString(),
+    };
+    
+    const existingIndex = matchViews.findIndex(
+      v => v.propertyId === propertyId && v.buyerId === buyerId
+    );
+    
+    let updated: MatchView[];
+    if (existingIndex >= 0) {
+      updated = [...matchViews];
+      updated[existingIndex] = newView;
+    } else {
+      updated = [...matchViews, newView];
+    }
+    
+    setMatchViews(updated);
+    await AsyncStorage.setItem(STORAGE_KEYS.MATCH_VIEWS, JSON.stringify(updated));
+  }, [matchViews]);
+
+  const isMatchViewed = useCallback((propertyId: string, buyerId: string): boolean => {
+    return matchViews.some(
+      v => v.propertyId === propertyId && v.buyerId === buyerId
+    );
+  }, [matchViews]);
+
   useEffect(() => {
     if (!isLoading) {
       updateMatchesCount(totalMatches);
@@ -401,5 +437,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     getAppointmentById,
     calculateMatchScore,
     getMatchedProperties,
+    markMatchAsViewed,
+    isMatchViewed,
   };
 });

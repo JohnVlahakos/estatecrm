@@ -17,14 +17,14 @@ import type { Property, Client } from '@/types';
 
 interface PropertyMatch {
   property: Property;
-  buyers: Array<{
+  buyers: {
     client: Client;
     matchScore: number;
-  }>;
+  }[];
 }
 
 export default function MatchesScreen() {
-  const { properties, clients, calculateMatchScore, isLoading, updateClient } = useCRM();
+  const { properties, clients, calculateMatchScore, isLoading, markMatchAsViewed, isMatchViewed } = useCRM();
   const { clearMatchesBadge } = useNotificationBadges();
   const router = useRouter();
   const [expandedPropertyId, setExpandedPropertyId] = useState<string | null>(null);
@@ -54,6 +54,10 @@ export default function MatchesScreen() {
     return matches.sort((a, b) => b.buyers.length - a.buyers.length);
   }, [properties, clients, calculateMatchScore, excludedMatches]);
 
+  const getNewMatchesCount = (propertyId: string, buyers: { client: Client; matchScore: number }[]) => {
+    return buyers.filter(buyer => !isMatchViewed(propertyId, buyer.client.id)).length;
+  };
+
   const totalMatches = useMemo(() => {
     return propertyMatches.reduce((sum, match) => sum + match.buyers.length, 0);
   }, [propertyMatches]);
@@ -74,7 +78,19 @@ export default function MatchesScreen() {
   );
 
   const toggleExpand = (propertyId: string) => {
-    setExpandedPropertyId(expandedPropertyId === propertyId ? null : propertyId);
+    const newExpandedId = expandedPropertyId === propertyId ? null : propertyId;
+    setExpandedPropertyId(newExpandedId);
+    
+    if (newExpandedId) {
+      const match = propertyMatches.find(m => m.property.id === propertyId);
+      if (match) {
+        match.buyers.forEach(buyer => {
+          if (!isMatchViewed(propertyId, buyer.client.id)) {
+            markMatchAsViewed(propertyId, buyer.client.id);
+          }
+        });
+      }
+    }
   };
 
   const handleRemoveMatch = (clientId: string, propertyId: string) => {
@@ -118,6 +134,8 @@ export default function MatchesScreen() {
 
       {propertyMatches.map((match) => {
         const isExpanded = expandedPropertyId === match.property.id;
+        const newMatchesCount = getNewMatchesCount(match.property.id, match.buyers);
+        const hasNewMatches = newMatchesCount > 0;
         
         return (
           <View key={match.property.id} style={styles.card}>
@@ -132,6 +150,11 @@ export default function MatchesScreen() {
                   <Text style={styles.propertyTitle} numberOfLines={1}>
                     {match.property.title}
                   </Text>
+                  {hasNewMatches && (
+                    <View style={styles.newBadge}>
+                      <Text style={styles.newBadgeText}>{newMatchesCount}</Text>
+                    </View>
+                  )}
                 </View>
                 
                 <View style={styles.propertyDetails}>
@@ -164,7 +187,10 @@ export default function MatchesScreen() {
                 <View style={styles.divider} />
                 <Text style={styles.buyersHeader}>Matched Buyers</Text>
                 
-                {match.buyers.map((buyer, index) => (
+                {match.buyers.map((buyer) => {
+                  const isNew = !isMatchViewed(match.property.id, buyer.client.id);
+                  
+                  return (
                   <View key={buyer.client.id} style={styles.buyerCard}>
                     <TouchableOpacity
                       style={styles.buyerInfo}
@@ -175,7 +201,7 @@ export default function MatchesScreen() {
                         <User size={16} color={Colors.primary} />
                       </View>
                       <View style={styles.buyerDetails}>
-                        <Text style={styles.buyerName}>{buyer.client.name}</Text>
+                        <Text style={[styles.buyerName, isNew && styles.newBuyerText]}>{buyer.client.name}</Text>
                         <Text style={styles.buyerContact}>{buyer.client.phone}</Text>
                         {buyer.client.budgetMax && (
                           <Text style={styles.buyerBudget}>
@@ -206,7 +232,8 @@ export default function MatchesScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                ))}
+                  );
+                })}
               </View>
             )}
 
@@ -422,5 +449,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  newBadge: {
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    minWidth: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700' as const,
+  },
+  newBuyerText: {
+    color: '#EF4444',
   },
 });
