@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 export default function ClientsScreen() {
@@ -622,59 +623,65 @@ export default function ClientsScreen() {
                     </View>
                   )}
                   {showLocationSelector && (
-                    <View style={styles.locationSelectorContainer}>
-                      <Text style={styles.locationSelectorTitle}>Διαθέσιμες Τοποθεσίες</Text>
-                      <View style={styles.locationSearchContainer}>
-                        <Search size={16} color={Colors.textLight} />
-                        <TextInput
-                          style={styles.locationSearchInput}
-                          placeholder="Αναζήτηση πόλης..."
-                          value={locationSearchQuery}
-                          onChangeText={setLocationSearchQuery}
-                        />
-                        {locationSearchQuery.length > 0 && (
-                          <TouchableOpacity onPress={() => setLocationSearchQuery('')}>
-                            <Text style={styles.clearSearchText}>×</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                      <ScrollView style={styles.locationList}>
-                        {filteredCitiesForSelector.length === 0 ? (
-                          <View style={styles.noResultsContainer}>
-                            <Text style={styles.noResultsText}>Δεν βρέθηκαν πόλεις</Text>
+                    <TouchableWithoutFeedback onPress={() => setShowLocationSelector(false)}>
+                      <View style={styles.locationSelectorOverlay}>
+                        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                          <View style={styles.locationSelectorContainer}>
+                            <Text style={styles.locationSelectorTitle}>Διαθέσιμες Τοποθεσίες</Text>
+                            <View style={styles.locationSearchContainer}>
+                              <Search size={16} color={Colors.textLight} />
+                              <TextInput
+                                style={styles.locationSearchInput}
+                                placeholder="Αναζήτηση πόλης..."
+                                value={locationSearchQuery}
+                                onChangeText={setLocationSearchQuery}
+                              />
+                              {locationSearchQuery.length > 0 && (
+                                <TouchableOpacity onPress={() => setLocationSearchQuery('')}>
+                                  <Text style={styles.clearSearchText}>×</Text>
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                            <ScrollView style={styles.locationList}>
+                              {filteredCitiesForSelector.length === 0 ? (
+                                <View style={styles.noResultsContainer}>
+                                  <Text style={styles.noResultsText}>Δεν βρέθηκαν πόλεις</Text>
+                                </View>
+                              ) : (
+                                filteredCitiesForSelector.map((city, index) => {
+                                const isSelected = newClient.desiredLocations.includes(city);
+                                return (
+                                  <TouchableOpacity
+                                    key={`city-${index}`}
+                                    style={[styles.locationItem, isSelected && styles.locationItemSelected]}
+                                    onPress={() => {
+                                      if (isSelected) {
+                                        setNewClient({
+                                          ...newClient,
+                                          desiredLocations: newClient.desiredLocations.filter(l => l !== city)
+                                        });
+                                      } else {
+                                        setNewClient({
+                                          ...newClient,
+                                          desiredLocations: [...newClient.desiredLocations, city]
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                                      {isSelected && <Check size={16} color="#fff" />}
+                                    </View>
+                                    <Text style={[styles.locationItemText, isSelected && styles.locationItemTextSelected]}>
+                                      {city}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              }))}
+                            </ScrollView>
                           </View>
-                        ) : (
-                          filteredCitiesForSelector.map((city, index) => {
-                          const isSelected = newClient.desiredLocations.includes(city);
-                          return (
-                            <TouchableOpacity
-                              key={`city-${index}`}
-                              style={[styles.locationItem, isSelected && styles.locationItemSelected]}
-                              onPress={() => {
-                                if (isSelected) {
-                                  setNewClient({
-                                    ...newClient,
-                                    desiredLocations: newClient.desiredLocations.filter(l => l !== city)
-                                  });
-                                } else {
-                                  setNewClient({
-                                    ...newClient,
-                                    desiredLocations: [...newClient.desiredLocations, city]
-                                  });
-                                }
-                              }}
-                            >
-                              <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-                                {isSelected && <Check size={16} color="#fff" />}
-                              </View>
-                              <Text style={[styles.locationItemText, isSelected && styles.locationItemTextSelected]}>
-                                {city}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        }))}
-                      </ScrollView>
-                    </View>
+                        </TouchableWithoutFeedback>
+                      </View>
+                    </TouchableWithoutFeedback>
                   )}
                 </View>
 
@@ -1517,6 +1524,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700' as const,
     lineHeight: 20,
+  },
+  locationSelectorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
   },
   locationSelectorContainer: {
     backgroundColor: Colors.background,
