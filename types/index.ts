@@ -156,6 +156,7 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   createdAt: string;
+  avatarUrl?: string;
 }
 
 export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'cancelled';

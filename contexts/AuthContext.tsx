@@ -134,7 +134,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     }
   }, [users, currentUser]);
 
-  const updateUserProfile = useCallback(async (userId: string, updates: { name?: string; email?: string; password?: string }) => {
+  const updateUserProfile = useCallback(async (userId: string, updates: { name?: string; email?: string; password?: string; avatarUrl?: string }) => {
     console.log('Updating user profile:', userId);
     const updatedUsers = users.map(u => {
       if (u.id === userId) {

@@ -8,12 +8,14 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import Colors from '@/constants/colors';
-import { Save, LogOut, Shield, Users, Bell, Crown, DollarSign, MapPin, Edit2, X } from 'lucide-react-native';
+import { Save, LogOut, Shield, Users, Bell, Crown, DollarSign, MapPin, Edit2, X, Camera } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function SettingsScreen() {
@@ -26,6 +28,7 @@ export default function SettingsScreen() {
   const [editName, setEditName] = useState(currentUser?.name || '');
   const [editEmail, setEditEmail] = useState(currentUser?.email || '');
   const [editPassword, setEditPassword] = useState('');
+  const [editAvatarUrl, setEditAvatarUrl] = useState(currentUser?.avatarUrl || '');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const pendingCount = getPendingUsers().length;
   const subscriptionStatus = currentUser ? getSubscriptionStatus(currentUser.id) : null;
@@ -38,6 +41,7 @@ export default function SettingsScreen() {
     if (currentUser) {
       setEditName(currentUser.name);
       setEditEmail(currentUser.email);
+      setEditAvatarUrl(currentUser.avatarUrl || '');
     }
   }, [currentUser]);
 
@@ -63,6 +67,26 @@ export default function SettingsScreen() {
     setEditName(currentUser?.name || '');
     setEditEmail(currentUser?.email || '');
     setEditPassword('');
+    setEditAvatarUrl(currentUser?.avatarUrl || '');
+  };
+
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please grant photo library permission to select an avatar.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images' as any,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setEditAvatarUrl(result.assets[0].uri);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -80,9 +104,10 @@ export default function SettingsScreen() {
 
     setIsUpdatingProfile(true);
     try {
-      const updates: { name?: string; email?: string; password?: string } = {
+      const updates: { name?: string; email?: string; password?: string; avatarUrl?: string } = {
         name: editName.trim(),
         email: editEmail.trim().toLowerCase(),
+        avatarUrl: editAvatarUrl,
       };
 
       if (editPassword.trim()) {
@@ -148,11 +173,27 @@ export default function SettingsScreen() {
       <View style={styles.userSection}>
         <View style={styles.userHeader}>
           <View style={styles.userInfo}>
-            <View style={styles.userAvatar}>
-              <Text style={styles.userAvatarText}>
-                {currentUser?.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            <TouchableOpacity 
+              style={styles.userAvatar} 
+              onPress={isEditingProfile ? handlePickImage : undefined}
+              disabled={!isEditingProfile}
+            >
+              {currentUser?.avatarUrl ? (
+                <Image 
+                  source={{ uri: currentUser.avatarUrl }} 
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <Text style={styles.userAvatarText}>
+                  {currentUser?.name.charAt(0).toUpperCase()}
+                </Text>
+              )}
+              {isEditingProfile && (
+                <View style={styles.cameraOverlay}>
+                  <Camera size={20} color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
             <View style={styles.userDetails}>
               <Text style={styles.userName}>{currentUser?.name}</Text>
               <Text style={styles.userEmailDisplay}>{currentUser?.email}</Text>
@@ -456,6 +497,21 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
