@@ -2,10 +2,10 @@ import { useCRM } from '@/contexts/CRMContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import Colors from '@/constants/colors';
 import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon, Check, SlidersHorizontal } from 'lucide-react-native';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Client, ClientPreferences, ClientStatus, ClientCategory, PropertyType } from '@/types';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ export default function ClientsScreen() {
   const { clients, addClient, updateClient, deleteClient, isLoading, getMatchedProperties } = useCRM();
   const { cities } = useSettings();
   const router = useRouter();
+  const params = useLocalSearchParams<{ clientId?: string }>();
   const [searchQuery, setSearchQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState<ClientStatus | 'all'>('all');
@@ -115,6 +116,15 @@ export default function ClientsScreen() {
     if (!editingClient) return [];
     return getMatchedProperties(editingClient.id);
   }, [editingClient, getMatchedProperties]);
+
+  useEffect(() => {
+    if (params.clientId && !isLoading) {
+      const client = clients.find(c => c.id === params.clientId);
+      if (client && !modalVisible) {
+        handleOpenEdit(client);
+      }
+    }
+  }, [params.clientId, clients, isLoading]);
 
   const handleOpenEdit = (client: Client) => {
     console.log('Opening edit for client:', client);

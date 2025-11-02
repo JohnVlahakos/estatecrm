@@ -10,8 +10,9 @@ import {
 import { useCRM } from '@/contexts/CRMContext';
 import { useNotificationBadges } from '@/contexts/NotificationBadgeContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import Colors from '@/constants/colors';
-import { TrendingUp, User, DollarSign, MapPin, Home } from 'lucide-react-native';
+import { TrendingUp, User, DollarSign, MapPin, Home, X } from 'lucide-react-native';
 import type { Property, Client } from '@/types';
 
 interface PropertyMatch {
@@ -23,9 +24,11 @@ interface PropertyMatch {
 }
 
 export default function MatchesScreen() {
-  const { properties, clients, calculateMatchScore, isLoading } = useCRM();
+  const { properties, clients, calculateMatchScore, isLoading, updateClient } = useCRM();
   const { clearMatchesBadge } = useNotificationBadges();
+  const router = useRouter();
   const [expandedPropertyId, setExpandedPropertyId] = useState<string | null>(null);
+  const [excludedMatches, setExcludedMatches] = useState<Set<string>>(new Set());
 
   const propertyMatches = useMemo(() => {
     const buyers = clients.filter(c => c.category === 'buyer');
@@ -36,7 +39,10 @@ export default function MatchesScreen() {
           client: buyer,
           matchScore: calculateMatchScore(buyer, property),
         }))
-        .filter(m => m.matchScore > 30)
+        .filter(m => {
+          const matchKey = `${m.client.id}-${property.id}`;
+          return m.matchScore > 30 && !excludedMatches.has(matchKey);
+        })
         .sort((a, b) => b.matchScore - a.matchScore);
 
       return {
@@ -46,7 +52,7 @@ export default function MatchesScreen() {
     });
 
     return matches.sort((a, b) => b.buyers.length - a.buyers.length);
-  }, [properties, clients, calculateMatchScore]);
+  }, [properties, clients, calculateMatchScore, excludedMatches]);
 
   const totalMatches = useMemo(() => {
     return propertyMatches.reduce((sum, match) => sum + match.buyers.length, 0);
@@ -60,6 +66,18 @@ export default function MatchesScreen() {
 
   const toggleExpand = (propertyId: string) => {
     setExpandedPropertyId(expandedPropertyId === propertyId ? null : propertyId);
+  };
+
+  const handleRemoveMatch = (clientId: string, propertyId: string) => {
+    const matchKey = `${clientId}-${propertyId}`;
+    setExcludedMatches(prev => new Set(prev).add(matchKey));
+  };
+
+  const handleBuyerPress = (clientId: string) => {
+    router.push({
+      pathname: '/(tabs)/clients',
+      params: { clientId }
+    });
   };
 
   if (isLoading) {
@@ -139,7 +157,11 @@ export default function MatchesScreen() {
                 
                 {match.buyers.map((buyer, index) => (
                   <View key={buyer.client.id} style={styles.buyerCard}>
-                    <View style={styles.buyerInfo}>
+                    <TouchableOpacity
+                      style={styles.buyerInfo}
+                      onPress={() => handleBuyerPress(buyer.client.id)}
+                      activeOpacity={0.7}
+                    >
                       <View style={styles.buyerIconContainer}>
                         <User size={16} color={Colors.primary} />
                       </View>
@@ -152,18 +174,27 @@ export default function MatchesScreen() {
                           </Text>
                         )}
                       </View>
-                    </View>
+                    </TouchableOpacity>
                     
-                    <View style={[
-                      styles.scoreContainer,
-                      { backgroundColor: getMatchColor(buyer.matchScore) + '20' }
-                    ]}>
-                      <Text style={[
-                        styles.scoreText,
-                        { color: getMatchColor(buyer.matchScore) }
+                    <View style={styles.buyerActions}>
+                      <View style={[
+                        styles.scoreContainer,
+                        { backgroundColor: getMatchColor(buyer.matchScore) + '20' }
                       ]}>
-                        {buyer.matchScore}%
-                      </Text>
+                        <Text style={[
+                          styles.scoreText,
+                          { color: getMatchColor(buyer.matchScore) }
+                        ]}>
+                          {buyer.matchScore}%
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.removeButton}
+                        onPress={() => handleRemoveMatch(buyer.client.id, match.property.id)}
+                        activeOpacity={0.7}
+                      >
+                        <X size={18} color="#EF4444" />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 ))}
@@ -312,6 +343,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 12,
+    minWidth: 0,
   },
   buyerIconContainer: {
     width: 32,
@@ -369,5 +401,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textLight,
     marginTop: 16,
+  },
+  buyerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  removeButton: {
+    padding: 6,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
