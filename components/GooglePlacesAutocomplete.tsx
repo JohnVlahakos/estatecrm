@@ -62,6 +62,7 @@ export default function CityAutocomplete({
         onFail={(error) => console.error('GooglePlacesAutocomplete error:', error)}
         onNotFound={() => console.log('No results found')}
         listEmptyComponent={() => null}
+        predefinedPlaces={[]}
       />
     </View>
   );
