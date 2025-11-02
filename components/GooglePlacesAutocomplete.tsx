@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Colors from '@/constants/colors';
 
@@ -17,9 +17,16 @@ export default function CityAutocomplete({
   apiKey 
 }: GooglePlacesAutocompleteProps) {
   const ref = useRef<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <View style={styles.container}>
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
       <GooglePlacesAutocomplete
         ref={ref}
         placeholder={placeholder}
@@ -42,6 +49,12 @@ export default function CityAutocomplete({
           defaultValue: defaultValue,
           onChangeText: (text) => {
             console.log('Text changed:', text);
+            setError(null);
+            if (text.length >= 2) {
+              setIsSearching(true);
+            } else {
+              setIsSearching(false);
+            }
           },
         }}
         styles={{
@@ -59,10 +72,31 @@ export default function CityAutocomplete({
         debounce={400}
         minLength={2}
         keepResultsAfterBlur={false}
-        onFail={(error) => console.error('GooglePlacesAutocomplete error:', error)}
-        onNotFound={() => console.log('No results found')}
-        listEmptyComponent={() => null}
+        onFail={(error) => {
+          console.error('GooglePlacesAutocomplete error:', error);
+          setError('Failed to fetch suggestions. Check your API key.');
+          setIsSearching(false);
+        }}
+        onNotFound={() => {
+          console.log('No results found');
+          setIsSearching(false);
+        }}
+        listEmptyComponent={() => {
+          if (isSearching) {
+            return (
+              <View style={styles.emptyStateContainer}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+                <Text style={styles.emptyStateText}>Αναζήτηση...</Text>
+              </View>
+            );
+          }
+          return null;
+        }}
         predefinedPlaces={[]}
+        requestUrl={{
+          useOnPlatform: 'all',
+          url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
+        }}
       />
     </View>
   );
@@ -123,5 +157,26 @@ const styles = StyleSheet.create({
   },
   powered: {
     display: 'none',
+  },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+  },
+  emptyStateContainer: {
+    padding: 16,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emptyStateText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
   },
 });
