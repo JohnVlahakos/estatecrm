@@ -1,7 +1,7 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import Colors from '@/constants/colors';
-import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon, Check } from 'lucide-react-native';
+import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon, Check, SlidersHorizontal } from 'lucide-react-native';
 import React, { useState, useMemo } from 'react';
 import type { Client, ClientPreferences, ClientStatus, ClientCategory, PropertyType } from '@/types';
 import { Image } from 'expo-image';
@@ -255,6 +255,12 @@ export default function ClientsScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => {}}
+        >
+          <SlidersHorizontal size={20} color={Colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.filterContainer}>
@@ -913,6 +919,10 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     color: Colors.text,
+  },
+  filterButton: {
+    padding: 8,
+    position: 'relative',
   },
   filterContainer: {
     paddingHorizontal: 16,
