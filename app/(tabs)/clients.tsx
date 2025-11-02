@@ -1,7 +1,7 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import Colors from '@/constants/colors';
-import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon, Check, SlidersHorizontal } from 'lucide-react-native';
+import { Plus, Search, Phone, Mail, Edit2, Heart, MapPin, Home as HomeIcon, Check, SlidersHorizontal, X } from 'lucide-react-native';
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Client, ClientPreferences, ClientStatus, ClientCategory, PropertyType } from '@/types';
 import { Image } from 'expo-image';
@@ -31,6 +31,7 @@ export default function ClientsScreen() {
   const [filterCategory, setFilterCategory] = useState<ClientCategory | 'all'>('all');
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [showMatchedProperties, setShowMatchedProperties] = useState(false);
+  const [excludedMatches, setExcludedMatches] = useState<Set<string>>(new Set());
 
   const getDefaultPreferences = (): ClientPreferences => ({
     securityDoor: false,
@@ -114,8 +115,11 @@ export default function ClientsScreen() {
 
   const matchedProperties = useMemo(() => {
     if (!editingClient) return [];
-    return getMatchedProperties(editingClient.id);
-  }, [editingClient, getMatchedProperties]);
+    return getMatchedProperties(editingClient.id).filter(m => {
+      const matchKey = `${editingClient.id}-${m.property.id}`;
+      return !excludedMatches.has(matchKey);
+    });
+  }, [editingClient, getMatchedProperties, excludedMatches]);
 
   useEffect(() => {
     if (params.clientId && !isLoading) {
@@ -204,6 +208,7 @@ export default function ClientsScreen() {
     setEditingClient(null);
     setShowMatchedProperties(false);
     setShowLocationSelector(false);
+    setExcludedMatches(new Set());
     setModalVisible(false);
   };
 
@@ -213,6 +218,7 @@ export default function ClientsScreen() {
     setShowMatchedProperties(false);
     setShowLocationSelector(false);
     setLocationSearchQuery('');
+    setExcludedMatches(new Set());
     setNewClient({
       name: '',
       phone: '',
@@ -428,56 +434,74 @@ export default function ClientsScreen() {
                     ) : (
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.matchedPropertiesList}>
                         {matchedProperties.map(({ property, matchScore }) => (
-                          <TouchableOpacity key={property.id} style={styles.matchedPropertyCard} onPress={() => {
-                            handleCloseModal();
-                            setTimeout(() => {
-                              router.push({
-                                pathname: '/properties',
-                                params: { propertyId: property.id }
-                              });
-                            }, 300);
-                          }} activeOpacity={0.7}>
-                            <View style={styles.matchedPropertyImageContainer}>
-                              {property.photos.length > 0 ? (
-                                <Image
-                                  source={{ uri: property.photos[0] }}
-                                  style={styles.matchedPropertyImage}
-                                  contentFit="cover"
-                                />
-                              ) : (
-                                <View style={[styles.matchedPropertyImage, styles.matchedPropertyImagePlaceholder]}>
-                                  <HomeIcon size={32} color={Colors.textLight} />
-                                </View>
-                              )}
-                              <View style={styles.matchScoreBadge}>
-                                <Heart size={12} color="#fff" fill="#fff" />
-                                <Text style={styles.matchScoreText}>{matchScore}%</Text>
-                              </View>
-                            </View>
-                            <View style={styles.matchedPropertyContent}>
-                              <Text style={styles.matchedPropertyTitle} numberOfLines={2}>{property.title}</Text>
-                              <View style={styles.matchedPropertyLocation}>
-                                <MapPin size={12} color={Colors.textSecondary} />
-                                <Text style={styles.matchedPropertyLocationText} numberOfLines={1}>{property.location}</Text>
-                              </View>
-                              <Text style={styles.matchedPropertyPrice}>€{property.price.toLocaleString()}</Text>
-                              <View style={styles.matchedPropertyDetails}>
-                                <View style={styles.propertyDetailItem}>
-                                  <Text style={styles.matchedPropertyDetailText}>{property.size}m²</Text>
-                                </View>
-                                {property.bedrooms && (
-                                  <View style={styles.propertyDetailItem}>
-                                    <Text style={styles.matchedPropertyDetailText}>{property.bedrooms} υπν.</Text>
+                          <View key={property.id} style={styles.matchedPropertyCard}>
+                            <TouchableOpacity 
+                              style={styles.removeMatchButton}
+                              onPress={() => {
+                                if (editingClient) {
+                                  const matchKey = `${editingClient.id}-${property.id}`;
+                                  setExcludedMatches(prev => new Set(prev).add(matchKey));
+                                }
+                              }}
+                              activeOpacity={0.7}
+                            >
+                              <X size={16} color="#fff" />
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                              style={styles.matchedPropertyCardContent}
+                              onPress={() => {
+                                handleCloseModal();
+                                setTimeout(() => {
+                                  router.push({
+                                    pathname: '/properties',
+                                    params: { propertyId: property.id }
+                                  });
+                                }, 300);
+                              }} 
+                              activeOpacity={0.7}
+                            >
+                              <View style={styles.matchedPropertyImageContainer}>
+                                {property.photos.length > 0 ? (
+                                  <Image
+                                    source={{ uri: property.photos[0] }}
+                                    style={styles.matchedPropertyImage}
+                                    contentFit="cover"
+                                  />
+                                ) : (
+                                  <View style={[styles.matchedPropertyImage, styles.matchedPropertyImagePlaceholder]}>
+                                    <HomeIcon size={32} color={Colors.textLight} />
                                   </View>
                                 )}
-                                {property.bathrooms && (
-                                  <View style={styles.propertyDetailItem}>
-                                    <Text style={styles.matchedPropertyDetailText}>{property.bathrooms} μπν.</Text>
-                                  </View>
-                                )}
+                                <View style={styles.matchScoreBadge}>
+                                  <Heart size={12} color="#fff" fill="#fff" />
+                                  <Text style={styles.matchScoreText}>{matchScore}%</Text>
+                                </View>
                               </View>
-                            </View>
-                          </TouchableOpacity>
+                              <View style={styles.matchedPropertyContent}>
+                                <Text style={styles.matchedPropertyTitle} numberOfLines={2}>{property.title}</Text>
+                                <View style={styles.matchedPropertyLocation}>
+                                  <MapPin size={12} color={Colors.textSecondary} />
+                                  <Text style={styles.matchedPropertyLocationText} numberOfLines={1}>{property.location}</Text>
+                                </View>
+                                <Text style={styles.matchedPropertyPrice}>€{property.price.toLocaleString()}</Text>
+                                <View style={styles.matchedPropertyDetails}>
+                                  <View style={styles.propertyDetailItem}>
+                                    <Text style={styles.matchedPropertyDetailText}>{property.size}m²</Text>
+                                  </View>
+                                  {property.bedrooms && (
+                                    <View style={styles.propertyDetailItem}>
+                                      <Text style={styles.matchedPropertyDetailText}>{property.bedrooms} υπν.</Text>
+                                    </View>
+                                  )}
+                                  {property.bathrooms && (
+                                    <View style={styles.propertyDetailItem}>
+                                      <Text style={styles.matchedPropertyDetailText}>{property.bathrooms} μπν.</Text>
+                                    </View>
+                                  )}
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
                         ))}
                       </ScrollView>
                     )}
@@ -1322,7 +1346,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderRadius: 16,
     marginRight: 12,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: '#000',
@@ -1330,6 +1353,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    position: 'relative',
+  },
+  matchedPropertyCardContent: {
+    overflow: 'hidden',
+    borderRadius: 16,
+  },
+  removeMatchButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
   matchedPropertyImageContainer: {
     position: 'relative',
