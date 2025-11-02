@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -58,9 +58,18 @@ export default function MatchesScreen() {
     return propertyMatches.reduce((sum, match) => sum + match.buyers.length, 0);
   }, [propertyMatches]);
 
+  const hasClearedBadgeRef = useRef(false);
+
   useFocusEffect(
     React.useCallback(() => {
-      clearMatchesBadge(totalMatches);
+      if (!hasClearedBadgeRef.current) {
+        clearMatchesBadge(totalMatches);
+        hasClearedBadgeRef.current = true;
+      }
+      
+      return () => {
+        hasClearedBadgeRef.current = false;
+      };
     }, [clearMatchesBadge, totalMatches])
   );
 
