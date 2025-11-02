@@ -1,4 +1,6 @@
 import { useCRM } from '@/contexts/CRMContext';
+import { useNotificationBadges } from '@/contexts/NotificationBadgeContext';
+import { useFocusEffect } from '@react-navigation/native';
 import Colors from '@/constants/colors';
 import { Plus, Calendar as CalendarIcon, Clock, User, Edit2, ChevronDown, Search, X } from 'lucide-react-native';
 import React, { useState, useMemo } from 'react';
@@ -19,8 +21,15 @@ import type { AppointmentType } from '@/types';
 
 export default function AppointmentsScreen() {
   const { appointments, clients, properties, addAppointment, updateAppointment, deleteAppointment, isLoading } = useCRM();
+  const { clearAppointmentsBadge } = useNotificationBadges();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      clearAppointmentsBadge();
+    }, [clearAppointmentsBadge])
+  );
 
   const [newAppointment, setNewAppointment] = useState({
     title: '',

@@ -4,6 +4,7 @@ import React from "react";
 import { TouchableOpacity, Image, Text, StyleSheet } from "react-native";
 import Colors from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotificationBadges } from "@/contexts/NotificationBadgeContext";
 
 function ProfileIcon() {
   const { currentUser } = useAuth();
@@ -32,6 +33,8 @@ function ProfileIcon() {
 }
 
 export default function TabLayout() {
+  const { matchesCount, appointmentsCount } = useNotificationBadges();
+
   return (
     <Tabs
       screenOptions={{
@@ -81,6 +84,7 @@ export default function TabLayout() {
           title: "Appointments",
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
           headerRight: () => <ProfileIcon />,
+          tabBarBadge: appointmentsCount > 0 ? appointmentsCount : undefined,
         }}
       />
       <Tabs.Screen
@@ -89,6 +93,7 @@ export default function TabLayout() {
           title: "Matches",
           tabBarIcon: ({ color }) => <TrendingUp size={24} color={color} />,
           headerRight: () => <ProfileIcon />,
+          tabBarBadge: matchesCount > 0 ? matchesCount : undefined,
         }}
       />
       <Tabs.Screen

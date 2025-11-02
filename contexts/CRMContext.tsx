@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import type { Client, Property, Appointment } from '@/types';
 import { mockClients, mockProperties, mockAppointments } from '@/utils/mockData';
 import { schedulePropertyAvailabilityNotification, cancelScheduledNotification, sendNewMatchNotification, scheduleAppointmentNotification } from '@/utils/notifications';
+import { useNotificationBadges } from '@/contexts/NotificationBadgeContext';
 
 const STORAGE_KEYS = {
   CLIENTS: '@crm_clients',
@@ -12,10 +13,12 @@ const STORAGE_KEYS = {
 };
 
 export const [CRMProvider, useCRM] = createContextHook(() => {
+  const { updateMatchesCount, updateAppointmentsCount } = useNotificationBadges();
   const [clients, setClients] = useState<Client[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastMatchesCount, setLastMatchesCount] = useState<number>(0);
 
   useEffect(() => {
     loadData();
@@ -349,6 +352,40 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
       .filter(m => m.matchScore > 0)
       .sort((a, b) => b.matchScore - a.matchScore);
   }, [clients, properties, calculateMatchScore]);
+
+  const totalMatches = useMemo(() => {
+    const buyers = clients.filter(c => c.category === 'buyer');
+    let count = 0;
+    properties.forEach(property => {
+      buyers.forEach(buyer => {
+        const score = calculateMatchScore(buyer, property);
+        if (score > 30) {
+          count++;
+        }
+      });
+    });
+    return count;
+  }, [properties, clients, calculateMatchScore]);
+
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return appointments.filter(a => {
+      const apptDate = new Date(a.date);
+      return apptDate >= now && !a.completed;
+    }).length;
+  }, [appointments]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const newMatchesCount = totalMatches > lastMatchesCount ? totalMatches - lastMatchesCount : 0;
+      updateMatchesCount(newMatchesCount);
+      updateAppointmentsCount(upcomingAppointments);
+      if (totalMatches > 0) {
+        setLastMatchesCount(totalMatches);
+      }
+    }
+  }, [totalMatches, upcomingAppointments, isLoading]);
 
   return {
     clients,

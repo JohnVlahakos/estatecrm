@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useCRM } from '@/contexts/CRMContext';
+import { useNotificationBadges } from '@/contexts/NotificationBadgeContext';
+import { useFocusEffect } from '@react-navigation/native';
 import Colors from '@/constants/colors';
 import { TrendingUp, User, DollarSign, MapPin, Home } from 'lucide-react-native';
 import type { Property, Client } from '@/types';
@@ -22,7 +24,14 @@ interface PropertyMatch {
 
 export default function MatchesScreen() {
   const { properties, clients, calculateMatchScore, isLoading } = useCRM();
+  const { clearMatchesBadge } = useNotificationBadges();
   const [expandedPropertyId, setExpandedPropertyId] = useState<string | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      clearMatchesBadge();
+    }, [clearMatchesBadge])
+  );
 
   const propertyMatches = useMemo(() => {
     const buyers = clients.filter(c => c.category === 'buyer');

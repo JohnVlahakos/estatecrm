@@ -7,6 +7,7 @@ import { CRMProvider } from "@/contexts/CRMContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { NotificationBadgeProvider } from "@/contexts/NotificationBadgeContext";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
 import * as Notifications from "expo-notifications";
 
@@ -85,11 +86,13 @@ export default function RootLayout() {
       <AuthProvider>
         <SubscriptionProvider>
           <SettingsProvider>
-            <CRMProvider>
-              <GestureHandlerRootView>
-                <RootLayoutNav />
-              </GestureHandlerRootView>
-            </CRMProvider>
+            <NotificationBadgeProvider>
+              <CRMProvider>
+                <GestureHandlerRootView>
+                  <RootLayoutNav />
+                </GestureHandlerRootView>
+              </CRMProvider>
+            </NotificationBadgeProvider>
           </SettingsProvider>
         </SubscriptionProvider>
       </AuthProvider>
