@@ -47,6 +47,8 @@ export default function CityAutocomplete({
         fetchDetails={true}
         enablePoweredByContainer={false}
         debounce={300}
+        predefinedPlaces={[]}
+        predefinedPlacesAlwaysVisible={false}
       />
     </View>
   );
