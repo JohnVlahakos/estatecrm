@@ -133,6 +133,8 @@ export interface Appointment {
   notes: string;
   completed: boolean;
   createdAt: string;
+  notificationId?: string;
+  notificationScheduled?: boolean;
 }
 
 export interface CommunicationLog {

@@ -3,7 +3,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Client, Property, Appointment } from '@/types';
 import { mockClients, mockProperties, mockAppointments } from '@/utils/mockData';
-import { schedulePropertyAvailabilityNotification, cancelScheduledNotification } from '@/utils/notifications';
+import { schedulePropertyAvailabilityNotification, cancelScheduledNotification, sendNewMatchNotification, scheduleAppointmentNotification } from '@/utils/notifications';
 
 const STORAGE_KEYS = {
   CLIENTS: '@crm_clients',
@@ -88,88 +88,6 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   const deleteClient = useCallback(async (id: string) => {
     await saveClients(clients.filter(c => c.id !== id));
   }, [clients]);
-
-  const addProperty = useCallback(async (property: Omit<Property, 'id' | 'createdAt'>) => {
-    const newProperty: Property = {
-      ...property,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    setProperties(currentProperties => {
-      const updated = [...currentProperties, newProperty];
-      AsyncStorage.setItem(STORAGE_KEYS.PROPERTIES, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  const updateProperty = useCallback(async (id: string, updates: Partial<Property>) => {
-    setProperties(currentProperties => {
-      const property = currentProperties.find(p => p.id === id);
-      if (!property) return currentProperties;
-
-      const oldNotificationId = property.rentalInfo?.notificationId;
-      let updatedProperty = { ...property, ...updates };
-
-      if (oldNotificationId && updates.rentalInfo?.notificationId !== oldNotificationId) {
-        cancelScheduledNotification(oldNotificationId);
-      }
-
-      if (updates.status === 'rented' && updates.rentalInfo?.availabilityDate) {
-        const availabilityDate = new Date(updates.rentalInfo.availabilityDate);
-        schedulePropertyAvailabilityNotification(
-          updatedProperty.title,
-          availabilityDate
-        ).then(notificationId => {
-          if (notificationId) {
-            const finalProperty = {
-              ...updatedProperty,
-              rentalInfo: {
-                ...updatedProperty.rentalInfo,
-                ...updates.rentalInfo,
-                notificationScheduled: true,
-                notificationId,
-              },
-            };
-            setProperties(props => {
-              const finalUpdated = props.map(p => p.id === id ? finalProperty : p);
-              AsyncStorage.setItem(STORAGE_KEYS.PROPERTIES, JSON.stringify(finalUpdated));
-              return finalUpdated;
-            });
-          }
-        });
-      }
-
-      const updated = currentProperties.map(p => p.id === id ? updatedProperty : p);
-      AsyncStorage.setItem(STORAGE_KEYS.PROPERTIES, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  const deleteProperty = useCallback(async (id: string) => {
-    await saveProperties(properties.filter(p => p.id !== id));
-  }, [properties]);
-
-  const addAppointment = useCallback(async (appointment: Omit<Appointment, 'id' | 'createdAt'>) => {
-    const newAppointment: Appointment = {
-      ...appointment,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    await saveAppointments([...appointments, newAppointment]);
-  }, [appointments]);
-
-  const updateAppointment = useCallback(async (id: string, updates: Partial<Appointment>) => {
-    const updated = appointments.map(a => a.id === id ? { ...a, ...updates } : a);
-    await saveAppointments(updated);
-  }, [appointments]);
-
-  const deleteAppointment = useCallback(async (id: string) => {
-    await saveAppointments(appointments.filter(a => a.id !== id));
-  }, [appointments]);
-
-  const getClientById = useCallback((id: string) => clients.find(c => c.id === id), [clients]);
-  const getPropertyById = useCallback((id: string) => properties.find(p => p.id === id), [properties]);
-  const getAppointmentById = useCallback((id: string) => appointments.find(a => a.id === id), [appointments]);
 
   const calculateMatchScore = useCallback((client: Client, property: Property): number => {
     const normalizeLocation = (location: string): string => {
@@ -284,6 +202,139 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
     return maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
   }, []);
+
+  const addProperty = useCallback(async (property: Omit<Property, 'id' | 'createdAt'>) => {
+    const newProperty: Property = {
+      ...property,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+    setProperties(currentProperties => {
+      const updated = [...currentProperties, newProperty];
+      AsyncStorage.setItem(STORAGE_KEYS.PROPERTIES, JSON.stringify(updated));
+      return updated;
+    });
+
+    if (newProperty.status === 'active') {
+      clients.forEach(client => {
+        const matchScore = calculateMatchScore(client, newProperty);
+        if (matchScore >= 70) {
+          sendNewMatchNotification(client.name, newProperty.title, matchScore);
+        }
+      });
+    }
+  }, [clients, calculateMatchScore]);
+
+  const updateProperty = useCallback(async (id: string, updates: Partial<Property>) => {
+    setProperties(currentProperties => {
+      const property = currentProperties.find(p => p.id === id);
+      if (!property) return currentProperties;
+
+      const oldNotificationId = property.rentalInfo?.notificationId;
+      let updatedProperty = { ...property, ...updates };
+
+      if (oldNotificationId && updates.rentalInfo?.notificationId !== oldNotificationId) {
+        cancelScheduledNotification(oldNotificationId);
+      }
+
+      if (updates.status === 'rented' && updates.rentalInfo?.availabilityDate) {
+        const availabilityDate = new Date(updates.rentalInfo.availabilityDate);
+        schedulePropertyAvailabilityNotification(
+          updatedProperty.title,
+          availabilityDate
+        ).then(notificationId => {
+          if (notificationId) {
+            const finalProperty = {
+              ...updatedProperty,
+              rentalInfo: {
+                ...updatedProperty.rentalInfo,
+                ...updates.rentalInfo,
+                notificationScheduled: true,
+                notificationId,
+              },
+            };
+            setProperties(props => {
+              const finalUpdated = props.map(p => p.id === id ? finalProperty : p);
+              AsyncStorage.setItem(STORAGE_KEYS.PROPERTIES, JSON.stringify(finalUpdated));
+              return finalUpdated;
+            });
+          }
+        });
+      }
+
+      const updated = currentProperties.map(p => p.id === id ? updatedProperty : p);
+      AsyncStorage.setItem(STORAGE_KEYS.PROPERTIES, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const deleteProperty = useCallback(async (id: string) => {
+    await saveProperties(properties.filter(p => p.id !== id));
+  }, [properties]);
+
+  const addAppointment = useCallback(async (appointment: Omit<Appointment, 'id' | 'createdAt'>) => {
+    const newAppointment: Appointment = {
+      ...appointment,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`);
+    const notificationId = await scheduleAppointmentNotification(
+      appointment.title,
+      appointmentDateTime,
+      60
+    );
+
+    if (notificationId) {
+      newAppointment.notificationId = notificationId;
+      newAppointment.notificationScheduled = true;
+    }
+
+    await saveAppointments([...appointments, newAppointment]);
+  }, [appointments]);
+
+  const updateAppointment = useCallback(async (id: string, updates: Partial<Appointment>) => {
+    const appointment = appointments.find(a => a.id === id);
+    if (!appointment) return;
+
+    if (appointment.notificationId && (updates.date || updates.time)) {
+      await cancelScheduledNotification(appointment.notificationId);
+    }
+
+    let updatedAppointment = { ...appointment, ...updates };
+
+    if (updates.date || updates.time) {
+      const appointmentDateTime = new Date(
+        `${updates.date || appointment.date}T${updates.time || appointment.time}`
+      );
+      const notificationId = await scheduleAppointmentNotification(
+        updates.title || appointment.title,
+        appointmentDateTime,
+        60
+      );
+
+      if (notificationId) {
+        updatedAppointment.notificationId = notificationId;
+        updatedAppointment.notificationScheduled = true;
+      }
+    }
+
+    const updated = appointments.map(a => a.id === id ? updatedAppointment : a);
+    await saveAppointments(updated);
+  }, [appointments]);
+
+  const deleteAppointment = useCallback(async (id: string) => {
+    const appointment = appointments.find(a => a.id === id);
+    if (appointment?.notificationId) {
+      await cancelScheduledNotification(appointment.notificationId);
+    }
+    await saveAppointments(appointments.filter(a => a.id !== id));
+  }, [appointments]);
+
+  const getClientById = useCallback((id: string) => clients.find(c => c.id === id), [clients]);
+  const getPropertyById = useCallback((id: string) => properties.find(p => p.id === id), [properties]);
+  const getAppointmentById = useCallback((id: string) => appointments.find(a => a.id === id), [appointments]);
 
   const getMatchedProperties = useCallback((clientId: string) => {
     const client = clients.find(c => c.id === clientId);

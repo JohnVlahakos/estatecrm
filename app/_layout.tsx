@@ -8,6 +8,7 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
+import * as Notifications from "expo-notifications";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -59,10 +60,25 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const router = useRouter();
+
   useEffect(() => {
     SplashScreen.hideAsync();
     registerForPushNotificationsAsync();
-  }, []);
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      console.log('Notification tapped:', data);
+
+      if (data.type === 'new_match') {
+        router.push('/(tabs)/matches');
+      } else if (data.type === 'appointment') {
+        router.push('/(tabs)/appointments');
+      }
+    });
+
+    return () => subscription.remove();
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
