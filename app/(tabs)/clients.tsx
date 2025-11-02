@@ -112,15 +112,12 @@ export default function ClientsScreen() {
     return matchesSearch && matchesStatusFilter && matchesCategoryFilter;
   });
 
-  const { isMatchExcluded: checkIsExcluded } = useCRM();
-  const [excludedMatchesVersion, setExcludedMatchesVersion] = useState(0);
-
   const matchedProperties = useMemo(() => {
     if (!editingClient) return [];
     return getMatchedProperties(editingClient.id).filter(m => {
-      return !checkIsExcluded(editingClient.id, m.property.id);
+      return !isMatchExcluded(editingClient.id, m.property.id);
     });
-  }, [editingClient, getMatchedProperties, checkIsExcluded, excludedMatchesVersion]);
+  }, [editingClient, getMatchedProperties, isMatchExcluded]);
 
   useEffect(() => {
     if (params.clientId && !isLoading) {
@@ -439,7 +436,6 @@ export default function ClientsScreen() {
                               onPress={() => {
                                 if (editingClient) {
                                   excludeMatch(editingClient.id, property.id);
-                                  setExcludedMatchesVersion(v => v + 1);
                                 }
                               }}
                               activeOpacity={0.7}
