@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
 import { MapPin, Plus, Trash2, Edit2, X, Check } from 'lucide-react-native';
 
-import CityAutocomplete from '@/components/GooglePlacesAutocomplete';
+
 
 export default function AdminCitiesScreen() {
   const { cities, addCity, removeCity, updateCity, isLoading, googleMapsApiKey, saveGoogleMapsApiKey } = useSettings();
@@ -23,9 +23,7 @@ export default function AdminCitiesScreen() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingCity, setEditingCity] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
-  const [useGoogleMaps, setUseGoogleMaps] = useState(false);
-  const [localApiKey, setLocalApiKey] = useState('');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+
 
   if (!isAdmin) {
     return (
@@ -125,112 +123,27 @@ export default function AdminCitiesScreen() {
       </View>
 
       <View style={styles.addSection}>
-        <View style={styles.toggleContainer}>
+        <View style={styles.addInputContainer}>
+          <TextInput
+            style={styles.addInput}
+            placeholder="Προσθήκη νέας πόλης..."
+            placeholderTextColor={Colors.textLight}
+            value={newCityName}
+            onChangeText={setNewCityName}
+            editable={!isAdding}
+          />
           <TouchableOpacity
-            style={[styles.toggleButton, !useGoogleMaps && styles.toggleButtonActive]}
-            onPress={() => setUseGoogleMaps(false)}
+            style={[styles.addButton, isAdding && styles.addButtonDisabled]}
+            onPress={handleAddCity}
+            disabled={isAdding}
           >
-            <Text style={[styles.toggleButtonText, !useGoogleMaps && styles.toggleButtonTextActive]}>
-              Manual
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleButton, useGoogleMaps && styles.toggleButtonActive]}
-            onPress={() => {
-              setUseGoogleMaps(true);
-              setLocalApiKey(googleMapsApiKey);
-              if (!googleMapsApiKey) {
-                setShowApiKeyInput(true);
-              }
-            }}
-          >
-            <Text style={[styles.toggleButtonText, useGoogleMaps && styles.toggleButtonTextActive]}>
-              Google Maps
-            </Text>
+            {isAdding ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Plus size={24} color="#fff" />
+            )}
           </TouchableOpacity>
         </View>
-
-        {showApiKeyInput && (
-          <View style={styles.apiKeyContainer}>
-            <Text style={styles.apiKeyLabel}>Google Maps API Key</Text>
-            <TextInput
-              style={styles.apiKeyInput}
-              placeholder="Paste your Google Maps API key..."
-              placeholderTextColor={Colors.textLight}
-              value={localApiKey}
-              onChangeText={setLocalApiKey}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity
-              style={styles.apiKeySaveButton}
-              onPress={async () => {
-                if (localApiKey.trim()) {
-                  await saveGoogleMapsApiKey(localApiKey.trim());
-                  setShowApiKeyInput(false);
-                  Alert.alert('Success', 'API Key saved!');
-                } else {
-                  Alert.alert('Error', 'Please enter a valid API key');
-                }
-              }}
-            >
-              <Text style={styles.apiKeySaveButtonText}>Save API Key</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {!useGoogleMaps ? (
-          <View style={styles.addInputContainer}>
-            <TextInput
-              style={styles.addInput}
-              placeholder="Προσθήκη νέας πόλης..."
-              placeholderTextColor={Colors.textLight}
-              value={newCityName}
-              onChangeText={setNewCityName}
-              editable={!isAdding}
-            />
-            <TouchableOpacity
-              style={[styles.addButton, isAdding && styles.addButtonDisabled]}
-              onPress={handleAddCity}
-              disabled={isAdding}
-            >
-              {isAdding ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Plus size={24} color="#fff" />
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : googleMapsApiKey ? (
-          <View style={styles.googleAutocompleteWrapper}>
-            <CityAutocomplete
-              key={googleMapsApiKey}
-              placeholder="Αναζήτηση πόλης από Google Maps..."
-              onPlaceSelected={async (place) => {
-                setNewCityName(place);
-                try {
-                  await addCity(place);
-                  Alert.alert('Επιτυχία', 'Η πόλη προστέθηκε επιτυχώς');
-                } catch (error) {
-                  Alert.alert('Σφάλμα', error instanceof Error ? error.message : 'Αποτυχία προσθήκης πόλης');
-                }
-              }}
-              apiKey={googleMapsApiKey}
-            />
-          </View>
-        ) : (
-          <View style={styles.apiKeyPrompt}>
-            <Text style={styles.apiKeyPromptText}>
-              Please add your Google Maps API key to use autocomplete
-            </Text>
-            <TouchableOpacity
-              style={styles.addApiKeyButton}
-              onPress={() => setShowApiKeyInput(true)}
-            >
-              <Text style={styles.addApiKeyButtonText}>Add API Key</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
 
       <ScrollView style={styles.citiesList} contentContainerStyle={styles.citiesListContent}>
@@ -475,94 +388,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  toggleContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-  },
-  toggleButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  toggleButtonText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text,
-  },
-  toggleButtonTextActive: {
-    color: '#fff',
-  },
-  apiKeyContainer: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  apiKeyLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  apiKeyInput: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  apiKeySaveButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  apiKeySaveButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600' as const,
-  },
-  googleAutocompleteWrapper: {
-    minHeight: 56,
-    zIndex: 1000,
-  },
-  apiKeyPrompt: {
-    padding: 16,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-  },
-  apiKeyPromptText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  addApiKeyButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  addApiKeyButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600' as const,
-  },
+
 });
