@@ -27,12 +27,6 @@ export default function MatchesScreen() {
   const { clearMatchesBadge } = useNotificationBadges();
   const [expandedPropertyId, setExpandedPropertyId] = useState<string | null>(null);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      clearMatchesBadge();
-    }, [clearMatchesBadge])
-  );
-
   const propertyMatches = useMemo(() => {
     const buyers = clients.filter(c => c.category === 'buyer');
     
@@ -53,6 +47,16 @@ export default function MatchesScreen() {
 
     return matches.sort((a, b) => b.buyers.length - a.buyers.length);
   }, [properties, clients, calculateMatchScore]);
+
+  const totalMatches = useMemo(() => {
+    return propertyMatches.reduce((sum, match) => sum + match.buyers.length, 0);
+  }, [propertyMatches]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      clearMatchesBadge(totalMatches);
+    }, [clearMatchesBadge, totalMatches])
+  );
 
   const toggleExpand = (propertyId: string) => {
     setExpandedPropertyId(expandedPropertyId === propertyId ? null : propertyId);

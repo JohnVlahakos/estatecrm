@@ -25,12 +25,6 @@ export default function AppointmentsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      clearAppointmentsBadge();
-    }, [clearAppointmentsBadge])
-  );
-
   const [newAppointment, setNewAppointment] = useState({
     title: '',
     type: 'meeting' as AppointmentType,
@@ -75,6 +69,21 @@ export default function AppointmentsScreen() {
 
     return { todayAppts, upcomingAppts, pastAppts };
   }, [appointments]);
+
+  const upcomingAppointmentsCount = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return appointments.filter(a => {
+      const apptDate = new Date(a.date);
+      return apptDate >= now && !a.completed;
+    }).length;
+  }, [appointments]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      clearAppointmentsBadge(upcomingAppointmentsCount);
+    }, [clearAppointmentsBadge, upcomingAppointmentsCount])
+  );
 
   const handleOpenEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
