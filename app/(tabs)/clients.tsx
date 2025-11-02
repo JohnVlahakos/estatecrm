@@ -86,6 +86,7 @@ export default function ClientsScreen() {
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [locationQuery, setLocationQuery] = useState('');
   const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
 
   const filteredCities = useMemo(() => {
     if (!locationQuery.trim()) return [];
@@ -93,6 +94,13 @@ export default function ClientsScreen() {
       city.toLowerCase().includes(locationQuery.toLowerCase())
     ).slice(0, 5);
   }, [locationQuery, cities]);
+
+  const filteredCitiesForSelector = useMemo(() => {
+    if (!locationSearchQuery.trim()) return cities;
+    return cities.filter(city => 
+      city.toLowerCase().includes(locationSearchQuery.toLowerCase())
+    );
+  }, [locationSearchQuery, cities]);
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -191,6 +199,7 @@ export default function ClientsScreen() {
     setEditingClient(null);
     setShowMatchedProperties(false);
     setShowLocationSelector(false);
+    setLocationSearchQuery('');
     setNewClient({
       name: '',
       phone: '',
@@ -615,8 +624,27 @@ export default function ClientsScreen() {
                   {showLocationSelector && (
                     <View style={styles.locationSelectorContainer}>
                       <Text style={styles.locationSelectorTitle}>Διαθέσιμες Τοποθεσίες</Text>
+                      <View style={styles.locationSearchContainer}>
+                        <Search size={16} color={Colors.textLight} />
+                        <TextInput
+                          style={styles.locationSearchInput}
+                          placeholder="Αναζήτηση πόλης..."
+                          value={locationSearchQuery}
+                          onChangeText={setLocationSearchQuery}
+                        />
+                        {locationSearchQuery.length > 0 && (
+                          <TouchableOpacity onPress={() => setLocationSearchQuery('')}>
+                            <Text style={styles.clearSearchText}>×</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                       <ScrollView style={styles.locationList}>
-                        {cities.sort().map((city, index) => {
+                        {filteredCitiesForSelector.length === 0 ? (
+                          <View style={styles.noResultsContainer}>
+                            <Text style={styles.noResultsText}>Δεν βρέθηκαν πόλεις</Text>
+                          </View>
+                        ) : (
+                          filteredCitiesForSelector.map((city, index) => {
                           const isSelected = newClient.desiredLocations.includes(city);
                           return (
                             <TouchableOpacity
@@ -644,7 +672,7 @@ export default function ClientsScreen() {
                               </Text>
                             </TouchableOpacity>
                           );
-                        })}
+                        }))}
                       </ScrollView>
                     </View>
                   )}
@@ -1541,5 +1569,33 @@ const styles = StyleSheet.create({
   checkboxSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+  },
+  locationSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: 8,
+  },
+  locationSearchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  clearSearchText: {
+    fontSize: 24,
+    color: Colors.textSecondary,
+    fontWeight: '700' as const,
+    lineHeight: 24,
+  },
+  noResultsContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    fontSize: 15,
+    color: Colors.textSecondary,
   },
 });
