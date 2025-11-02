@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -80,18 +80,24 @@ export default function MatchesScreen() {
   const toggleExpand = (propertyId: string) => {
     const newExpandedId = expandedPropertyId === propertyId ? null : propertyId;
     setExpandedPropertyId(newExpandedId);
-    
-    if (newExpandedId) {
-      const match = propertyMatches.find(m => m.property.id === propertyId);
-      if (match) {
-        match.buyers.forEach(buyer => {
-          if (!isMatchViewed(propertyId, buyer.client.id)) {
-            markMatchAsViewed(propertyId, buyer.client.id);
-          }
-        });
-      }
-    }
   };
+
+  useEffect(() => {
+    if (expandedPropertyId) {
+      const timeoutId = setTimeout(() => {
+        const match = propertyMatches.find(m => m.property.id === expandedPropertyId);
+        if (match) {
+          match.buyers.forEach(buyer => {
+            if (!isMatchViewed(expandedPropertyId, buyer.client.id)) {
+              markMatchAsViewed(expandedPropertyId, buyer.client.id);
+            }
+          });
+        }
+      }, 1500);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [expandedPropertyId, propertyMatches, isMatchViewed, markMatchAsViewed]);
 
   const handleRemoveMatch = (clientId: string, propertyId: string) => {
     const matchKey = `${clientId}-${propertyId}`;
