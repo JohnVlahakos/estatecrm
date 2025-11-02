@@ -37,7 +37,6 @@ export default function CityAutocomplete({
           types: '(cities)',
           components: 'country:gr',
         }}
-        predefinedPlaces={[]}
         textInputProps={{
           placeholderTextColor: Colors.textLight,
           defaultValue: defaultValue,
