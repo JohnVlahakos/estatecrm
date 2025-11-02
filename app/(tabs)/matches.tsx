@@ -24,11 +24,10 @@ interface PropertyMatch {
 }
 
 export default function MatchesScreen() {
-  const { properties, clients, calculateMatchScore, isLoading, markMatchAsViewed, isMatchViewed } = useCRM();
+  const { properties, clients, calculateMatchScore, isLoading, markMatchAsViewed, isMatchViewed, excludeMatch, isMatchExcluded } = useCRM();
   const { clearMatchesBadge } = useNotificationBadges();
   const router = useRouter();
   const [expandedPropertyId, setExpandedPropertyId] = useState<string | null>(null);
-  const [excludedMatches, setExcludedMatches] = useState<Set<string>>(new Set());
 
   const propertyMatches = useMemo(() => {
     const buyers = clients.filter(c => c.category === 'buyer');
@@ -40,8 +39,7 @@ export default function MatchesScreen() {
           matchScore: calculateMatchScore(buyer, property),
         }))
         .filter(m => {
-          const matchKey = `${m.client.id}-${property.id}`;
-          return m.matchScore > 30 && !excludedMatches.has(matchKey);
+          return m.matchScore > 30 && !isMatchExcluded(m.client.id, property.id);
         })
         .sort((a, b) => b.matchScore - a.matchScore);
 
@@ -52,7 +50,7 @@ export default function MatchesScreen() {
     });
 
     return matches.sort((a, b) => b.buyers.length - a.buyers.length);
-  }, [properties, clients, calculateMatchScore, excludedMatches]);
+  }, [properties, clients, calculateMatchScore, isMatchExcluded]);
 
   const getNewMatchesCount = (propertyId: string, buyers: { client: Client; matchScore: number }[]) => {
     return buyers.filter(buyer => !isMatchViewed(propertyId, buyer.client.id)).length;
@@ -100,8 +98,7 @@ export default function MatchesScreen() {
   }, [expandedPropertyId, propertyMatches, isMatchViewed, markMatchAsViewed]);
 
   const handleRemoveMatch = (clientId: string, propertyId: string) => {
-    const matchKey = `${clientId}-${propertyId}`;
-    setExcludedMatches(prev => new Set(prev).add(matchKey));
+    excludeMatch(clientId, propertyId);
   };
 
   const handleBuyerPress = (clientId: string) => {

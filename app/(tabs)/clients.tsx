@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 
 export default function ClientsScreen() {
-  const { clients, addClient, updateClient, deleteClient, isLoading, getMatchedProperties } = useCRM();
+  const { clients, addClient, updateClient, deleteClient, isLoading, getMatchedProperties, excludeMatch, isMatchExcluded } = useCRM();
   const { cities } = useSettings();
   const router = useRouter();
   const params = useLocalSearchParams<{ clientId?: string }>();
@@ -31,7 +31,6 @@ export default function ClientsScreen() {
   const [filterCategory, setFilterCategory] = useState<ClientCategory | 'all'>('all');
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [showMatchedProperties, setShowMatchedProperties] = useState(false);
-  const [excludedMatches, setExcludedMatches] = useState<Set<string>>(new Set());
 
   const getDefaultPreferences = (): ClientPreferences => ({
     securityDoor: false,
@@ -116,10 +115,9 @@ export default function ClientsScreen() {
   const matchedProperties = useMemo(() => {
     if (!editingClient) return [];
     return getMatchedProperties(editingClient.id).filter(m => {
-      const matchKey = `${editingClient.id}-${m.property.id}`;
-      return !excludedMatches.has(matchKey);
+      return !isMatchExcluded(editingClient.id, m.property.id);
     });
-  }, [editingClient, getMatchedProperties, excludedMatches]);
+  }, [editingClient, getMatchedProperties, isMatchExcluded]);
 
   useEffect(() => {
     if (params.clientId && !isLoading) {
@@ -208,7 +206,6 @@ export default function ClientsScreen() {
     setEditingClient(null);
     setShowMatchedProperties(false);
     setShowLocationSelector(false);
-    setExcludedMatches(new Set());
     setModalVisible(false);
   };
 
@@ -218,7 +215,6 @@ export default function ClientsScreen() {
     setShowMatchedProperties(false);
     setShowLocationSelector(false);
     setLocationSearchQuery('');
-    setExcludedMatches(new Set());
     setNewClient({
       name: '',
       phone: '',
@@ -439,8 +435,7 @@ export default function ClientsScreen() {
                               style={styles.removeMatchButton}
                               onPress={() => {
                                 if (editingClient) {
-                                  const matchKey = `${editingClient.id}-${property.id}`;
-                                  setExcludedMatches(prev => new Set(prev).add(matchKey));
+                                  excludeMatch(editingClient.id, property.id);
                                 }
                               }}
                               activeOpacity={0.7}
