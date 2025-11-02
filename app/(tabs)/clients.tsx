@@ -117,6 +117,7 @@ export default function ClientsScreen() {
   }, [editingClient, getMatchedProperties]);
 
   const handleOpenEdit = (client: Client) => {
+    console.log('Opening edit for client:', client);
     setEditingClient(client);
     setNewClient({
       name: client.name,
@@ -140,6 +141,7 @@ export default function ClientsScreen() {
       budgetMin: client.budgetMin?.toString() || '',
       budgetMax: client.budgetMax?.toString() || '',
     });
+    console.log('Modal will open now');
     setModalVisible(true);
   };
 
