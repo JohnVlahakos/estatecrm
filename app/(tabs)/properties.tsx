@@ -841,7 +841,7 @@ export default function PropertiesScreen() {
                           const isSelected = newProperty.location === city;
                           return (
                             <TouchableOpacity
-                              key={`city-${index}`}
+                              key={`property-city-${index}-${city}`}
                               style={[styles.locationItem, isSelected && styles.locationItemSelected]}
                               onPress={() => {
                                 setNewProperty({ ...newProperty, location: city });
@@ -1096,7 +1096,7 @@ export default function PropertiesScreen() {
                   const firstFeature = features[i];
                   const secondFeature = features[i + 1];
                   rows.push(
-                    <View key={`feat-row-${i}`} style={styles.row}>
+                    <View key={`feat-row-${i}-${firstFeature.key}`} style={styles.row}>
                       <View style={[styles.fieldContainer, { flex: 1 }]}>
                         <Text style={styles.fieldLabel}>{firstFeature.label}</Text>
                         <View style={styles.yesNoContainer}>

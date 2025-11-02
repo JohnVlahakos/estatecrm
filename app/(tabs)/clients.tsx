@@ -608,7 +608,7 @@ export default function ClientsScreen() {
                   {newClient.desiredLocations.length > 0 && (
                     <View style={styles.selectedLocationsContainer}>
                       {newClient.desiredLocations.map((location, index) => (
-                        <View key={`selected-${index}`} style={styles.locationChip}>
+                        <View key={`selected-location-${index}-${location}`} style={styles.locationChip}>
                           <Text style={styles.locationChipText}>{location}</Text>
                           <TouchableOpacity
                             onPress={() => {
@@ -654,7 +654,7 @@ export default function ClientsScreen() {
                                 const isSelected = newClient.desiredLocations.includes(city);
                                 return (
                                   <TouchableOpacity
-                                    key={`city-${index}`}
+                                    key={`city-selector-${index}-${city}`}
                                     style={[styles.locationItem, isSelected && styles.locationItemSelected]}
                                     onPress={() => {
                                       if (isSelected) {
@@ -832,7 +832,7 @@ export default function ClientsScreen() {
                   const rows = [];
                   for (let i = 0; i < preferences.length; i += 2) {
                     rows.push(
-                      <View key={`pref-row-${i}-${preferences[i].key}`} style={styles.row}>
+                      <View key={`pref-row-${i}-${preferences[i]?.key || 'unknown'}`} style={styles.row}>
                         <View style={[styles.fieldContainer, { flex: 1 }]}>
                           <Text style={styles.fieldLabel}>{preferences[i].label}</Text>
                           <View style={styles.yesNoContainer}>
