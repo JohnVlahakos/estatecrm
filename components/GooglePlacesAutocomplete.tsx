@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Colors from '@/constants/colors';
@@ -16,13 +16,20 @@ export default function CityAutocomplete({
   defaultValue,
   apiKey 
 }: GooglePlacesAutocompleteProps) {
+  const ref = useRef<any>(null);
+
   return (
     <View style={styles.container}>
       <GooglePlacesAutocomplete
+        ref={ref}
         placeholder={placeholder}
         onPress={(data, details = null) => {
+          console.log('Place selected:', data);
           const placeName = data.structured_formatting?.main_text || data.description;
           onPlaceSelected(placeName);
+          if (ref.current) {
+            ref.current.setAddressText('');
+          }
         }}
         query={{
           key: apiKey,
@@ -33,6 +40,9 @@ export default function CityAutocomplete({
         textInputProps={{
           placeholderTextColor: Colors.textLight,
           defaultValue: defaultValue,
+          onChangeText: (text) => {
+            console.log('Text changed:', text);
+          },
         }}
         styles={{
           container: styles.autocompleteContainer,
@@ -44,11 +54,14 @@ export default function CityAutocomplete({
           poweredContainer: styles.poweredContainer,
           powered: styles.powered,
         }}
-        fetchDetails={true}
+        fetchDetails={false}
         enablePoweredByContainer={false}
-        debounce={300}
-        predefinedPlaces={[]}
-        predefinedPlacesAlwaysVisible={false}
+        debounce={400}
+        minLength={2}
+        keepResultsAfterBlur={false}
+        onFail={(error) => console.error('GooglePlacesAutocomplete error:', error)}
+        onNotFound={() => console.log('No results found')}
+        listEmptyComponent={() => null}
       />
     </View>
   );

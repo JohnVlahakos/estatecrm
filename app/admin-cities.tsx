@@ -17,14 +17,14 @@ import { MapPin, Plus, Trash2, Edit2, X, Check } from 'lucide-react-native';
 import CityAutocomplete from '@/components/GooglePlacesAutocomplete';
 
 export default function AdminCitiesScreen() {
-  const { cities, addCity, removeCity, updateCity, isLoading } = useSettings();
+  const { cities, addCity, removeCity, updateCity, isLoading, googleMapsApiKey, saveGoogleMapsApiKey } = useSettings();
   const { isAdmin } = useAuth();
   const [newCityName, setNewCityName] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editingCity, setEditingCity] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [useGoogleMaps, setUseGoogleMaps] = useState(false);
-  const [googleMapsApiKey, setGoogleMapsApiKey] = useState('');
+  const [localApiKey, setLocalApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   if (!isAdmin) {
@@ -138,6 +138,7 @@ export default function AdminCitiesScreen() {
             style={[styles.toggleButton, useGoogleMaps && styles.toggleButtonActive]}
             onPress={() => {
               setUseGoogleMaps(true);
+              setLocalApiKey(googleMapsApiKey);
               if (!googleMapsApiKey) {
                 setShowApiKeyInput(true);
               }
@@ -156,15 +157,16 @@ export default function AdminCitiesScreen() {
               style={styles.apiKeyInput}
               placeholder="Paste your Google Maps API key..."
               placeholderTextColor={Colors.textLight}
-              value={googleMapsApiKey}
-              onChangeText={setGoogleMapsApiKey}
+              value={localApiKey}
+              onChangeText={setLocalApiKey}
               autoCapitalize="none"
               autoCorrect={false}
             />
             <TouchableOpacity
               style={styles.apiKeySaveButton}
-              onPress={() => {
-                if (googleMapsApiKey.trim()) {
+              onPress={async () => {
+                if (localApiKey.trim()) {
+                  await saveGoogleMapsApiKey(localApiKey.trim());
                   setShowApiKeyInput(false);
                   Alert.alert('Success', 'API Key saved!');
                 } else {
@@ -202,10 +204,16 @@ export default function AdminCitiesScreen() {
         ) : googleMapsApiKey ? (
           <View style={styles.googleAutocompleteWrapper}>
             <CityAutocomplete
+              key={googleMapsApiKey}
               placeholder="Αναζήτηση πόλης από Google Maps..."
-              onPlaceSelected={(place) => {
+              onPlaceSelected={async (place) => {
                 setNewCityName(place);
-                handleAddCity();
+                try {
+                  await addCity(place);
+                  Alert.alert('Επιτυχία', 'Η πόλη προστέθηκε επιτυχώς');
+                } catch (error) {
+                  Alert.alert('Σφάλμα', error instanceof Error ? error.message : 'Αποτυχία προσθήκης πόλης');
+                }
               }}
               apiKey={googleMapsApiKey}
             />
