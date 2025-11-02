@@ -18,7 +18,6 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastMatchesCount, setLastMatchesCount] = useState<number>(0);
 
   useEffect(() => {
     loadData();
@@ -378,14 +377,10 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
   useEffect(() => {
     if (!isLoading) {
-      const newMatchesCount = totalMatches > lastMatchesCount ? totalMatches - lastMatchesCount : 0;
-      updateMatchesCount(newMatchesCount);
+      updateMatchesCount(totalMatches);
       updateAppointmentsCount(upcomingAppointments);
-      if (totalMatches > 0) {
-        setLastMatchesCount(totalMatches);
-      }
     }
-  }, [totalMatches, upcomingAppointments, isLoading]);
+  }, [totalMatches, upcomingAppointments, isLoading, updateMatchesCount, updateAppointmentsCount]);
 
   return {
     clients,
