@@ -497,7 +497,7 @@ export default function AppointmentsScreen() {
                 onChangeText={(text) => setNewAppointment({ ...newAppointment, notes: text })}
               />
 
-              <View style={{ height: 80 }} />
+              <View style={{ height: 120 }} />
               </View>
             </ScrollView>
             <View style={[styles.modalButtonsFixed, isAtBottom && styles.modalButtonsStatic]}>

@@ -1256,7 +1256,7 @@ export default function PropertiesScreen() {
                 />
               </View>
 
-              <View style={{ height: 80 }} />
+              <View style={{ height: 120 }} />
             </View>
           </ScrollView>
           <View style={[styles.modalButtonsFixed, isAtBottom && styles.modalButtonsStatic]}>

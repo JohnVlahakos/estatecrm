@@ -947,7 +947,7 @@ export default function ClientsScreen() {
                   />
                 </View>
 
-                <View style={{ height: 80 }} />
+                <View style={{ height: 120 }} />
               </ScrollView>
               <View style={[styles.modalButtonsFixed, isAtBottom && styles.modalButtonsStatic]}>
                 <View style={styles.modalButtons}>
