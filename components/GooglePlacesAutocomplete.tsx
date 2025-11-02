@@ -23,7 +23,6 @@ export default function CityAutocomplete({
       <GooglePlacesAutocomplete
         ref={ref}
         placeholder={placeholder}
-        predefinedPlaces={[]}
         onPress={(data, details = null) => {
           console.log('Place selected:', data);
           const placeName = data.structured_formatting?.main_text || data.description;
