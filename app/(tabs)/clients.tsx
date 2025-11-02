@@ -1045,16 +1045,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    paddingRight: 36,
   },
   clientName: {
     fontSize: 18,
     fontWeight: '600' as const,
     color: Colors.text,
+    flex: 1,
+    marginRight: 8,
   },
   badgesContainer: {
     flexDirection: 'row',
     gap: 6,
     alignItems: 'center',
+    flexShrink: 1,
   },
   categoryBadge: {
     paddingHorizontal: 10,
