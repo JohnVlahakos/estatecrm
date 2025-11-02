@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Client, Property, Appointment } from '@/types';
 import { mockClients, mockProperties, mockAppointments } from '@/utils/mockData';
 import { schedulePropertyAvailabilityNotification, cancelScheduledNotification, sendNewMatchNotification, scheduleAppointmentNotification } from '@/utils/notifications';
@@ -350,7 +350,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
       .sort((a, b) => b.matchScore - a.matchScore);
   }, [clients, properties, calculateMatchScore]);
 
-  return useMemo(() => ({
+  return {
     clients,
     properties,
     appointments,
@@ -369,24 +369,5 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     getAppointmentById,
     calculateMatchScore,
     getMatchedProperties,
-  }), [
-    clients,
-    properties,
-    appointments,
-    isLoading,
-    addClient,
-    updateClient,
-    deleteClient,
-    addProperty,
-    updateProperty,
-    deleteProperty,
-    addAppointment,
-    updateAppointment,
-    deleteAppointment,
-    getClientById,
-    getPropertyById,
-    getAppointmentById,
-    calculateMatchScore,
-    getMatchedProperties,
-  ]);
+  };
 });
