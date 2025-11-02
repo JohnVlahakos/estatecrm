@@ -31,6 +31,7 @@ export default function ClientsScreen() {
   const [filterCategory, setFilterCategory] = useState<ClientCategory | 'all'>('all');
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [showMatchedProperties, setShowMatchedProperties] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   const getDefaultPreferences = (): ClientPreferences => ({
     securityDoor: false,
@@ -117,7 +118,7 @@ export default function ClientsScreen() {
     return getMatchedProperties(editingClient.id).filter(m => {
       return !isMatchExcluded(editingClient.id, m.property.id);
     });
-  }, [editingClient, getMatchedProperties, isMatchExcluded]);
+  }, [editingClient?.id, getMatchedProperties, isMatchExcluded, refreshCounter]);
 
   useEffect(() => {
     if (params.clientId && !isLoading) {
@@ -130,6 +131,7 @@ export default function ClientsScreen() {
 
   const handleOpenEdit = (client: Client) => {
     console.log('Opening edit for client:', client);
+    setRefreshCounter(prev => prev + 1);
     setEditingClient(client);
     setNewClient({
       name: client.name,
