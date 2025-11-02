@@ -115,9 +115,14 @@ export default function ClientsScreen() {
 
   const matchedProperties = useMemo(() => {
     if (!editingClient) return [];
-    return getMatchedProperties(editingClient.id).filter(m => {
-      return !isMatchExcluded(editingClient.id, m.property.id);
+    console.log('Recalculating matched properties for client:', editingClient.id);
+    const matches = getMatchedProperties(editingClient.id).filter(m => {
+      const isExcluded = isMatchExcluded(editingClient.id, m.property.id);
+      console.log('Property:', m.property.id, 'isExcluded:', isExcluded);
+      return !isExcluded;
     });
+    console.log('Final matched properties count:', matches.length);
+    return matches;
   }, [editingClient?.id, getMatchedProperties, isMatchExcluded, refreshCounter]);
 
   useEffect(() => {
@@ -435,9 +440,12 @@ export default function ClientsScreen() {
                           <View key={property.id} style={styles.matchedPropertyCard}>
                             <TouchableOpacity 
                               style={styles.removeMatchButton}
-                              onPress={() => {
+                              onPress={async () => {
                                 if (editingClient) {
-                                  excludeMatch(editingClient.id, property.id);
+                                  console.log('Removing match:', editingClient.id, property.id);
+                                  await excludeMatch(editingClient.id, property.id);
+                                  console.log('Match removed, incrementing refresh counter');
+                                  setRefreshCounter(prev => prev + 1);
                                 }
                               }}
                               activeOpacity={0.7}

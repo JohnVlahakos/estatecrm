@@ -20,7 +20,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [matchViews, setMatchViews] = useState<MatchView[]>([]);
-  const [excludedMatches, setExcludedMatches] = useState<Set<string>>(new Set());
+  const [excludedMatches, setExcludedMatches] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
       if (excludedMatchesData) {
         const excludedArray = JSON.parse(excludedMatchesData);
-        setExcludedMatches(new Set(excludedArray));
+        setExcludedMatches(excludedArray);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -421,14 +421,19 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
 
   const excludeMatch = useCallback(async (clientId: string, propertyId: string) => {
     const matchKey = `${clientId}-${propertyId}`;
-    const updated = new Set(excludedMatches).add(matchKey);
+    console.log('Excluding match:', matchKey);
+    const updated = [...excludedMatches, matchKey];
+    console.log('Updated excluded matches:', updated);
     setExcludedMatches(updated);
-    await AsyncStorage.setItem(STORAGE_KEYS.EXCLUDED_MATCHES, JSON.stringify(Array.from(updated)));
+    await AsyncStorage.setItem(STORAGE_KEYS.EXCLUDED_MATCHES, JSON.stringify(updated));
+    console.log('Saved to AsyncStorage');
   }, [excludedMatches]);
 
   const isMatchExcluded = useCallback((clientId: string, propertyId: string): boolean => {
     const matchKey = `${clientId}-${propertyId}`;
-    return excludedMatches.has(matchKey);
+    const isExcluded = excludedMatches.includes(matchKey);
+    console.log('Checking if match is excluded:', matchKey, isExcluded, 'excludedMatches:', excludedMatches);
+    return isExcluded;
   }, [excludedMatches]);
 
   useEffect(() => {
