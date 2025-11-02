@@ -13,21 +13,33 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import Colors from '@/constants/colors';
-import { Save, LogOut, Shield, Users, Bell, Crown, DollarSign, MapPin } from 'lucide-react-native';
+import { Save, LogOut, Shield, Users, Bell, Crown, DollarSign, MapPin, Edit2, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { googleMapsApiKey, saveGoogleMapsApiKey, isLoading } = useSettings();
-  const { currentUser, logout, isAdmin, getPendingUsers } = useAuth();
+  const { currentUser, logout, isAdmin, getPendingUsers, updateUserProfile } = useAuth();
   const { getSubscriptionStatus } = useSubscription();
   const [apiKey, setApiKey] = useState(googleMapsApiKey);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState(currentUser?.name || '');
+  const [editEmail, setEditEmail] = useState(currentUser?.email || '');
+  const [editPassword, setEditPassword] = useState('');
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const pendingCount = getPendingUsers().length;
   const subscriptionStatus = currentUser ? getSubscriptionStatus(currentUser.id) : null;
 
   React.useEffect(() => {
     setApiKey(googleMapsApiKey);
   }, [googleMapsApiKey]);
+
+  React.useEffect(() => {
+    if (currentUser) {
+      setEditName(currentUser.name);
+      setEditEmail(currentUser.email);
+    }
+  }, [currentUser]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -39,6 +51,53 @@ export default function SettingsScreen() {
       console.error('Error saving API key:', error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleEditProfile = () => {
+    setIsEditingProfile(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingProfile(false);
+    setEditName(currentUser?.name || '');
+    setEditEmail(currentUser?.email || '');
+    setEditPassword('');
+  };
+
+  const handleSaveProfile = async () => {
+    if (!currentUser) return;
+
+    if (!editName.trim()) {
+      Alert.alert('Error', 'Name cannot be empty');
+      return;
+    }
+
+    if (!editEmail.trim()) {
+      Alert.alert('Error', 'Email cannot be empty');
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    try {
+      const updates: { name?: string; email?: string; password?: string } = {
+        name: editName.trim(),
+        email: editEmail.trim().toLowerCase(),
+      };
+
+      if (editPassword.trim()) {
+        updates.password = editPassword;
+      }
+
+      await updateUserProfile(currentUser.id, updates);
+      setIsEditingProfile(false);
+      setEditPassword('');
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      console.error('Error updating profile:', error);
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -87,23 +146,93 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.userSection}>
-        <View style={styles.userInfo}>
-          <View style={styles.userAvatar}>
-            <Text style={styles.userAvatarText}>
-              {currentUser?.name.charAt(0).toUpperCase()}
-            </Text>
+        <View style={styles.userHeader}>
+          <View style={styles.userInfo}>
+            <View style={styles.userAvatar}>
+              <Text style={styles.userAvatarText}>
+                {currentUser?.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userName}>{currentUser?.name}</Text>
+              <Text style={styles.userEmailDisplay}>{currentUser?.email}</Text>
+              {isAdmin && (
+                <View style={styles.adminBadge}>
+                  <Shield size={12} color="#fff" />
+                  <Text style={styles.adminBadgeText}>Administrator</Text>
+                </View>
+              )}
+            </View>
           </View>
-          <View style={styles.userDetails}>
-            <Text style={styles.userName}>{currentUser?.name}</Text>
-            <Text style={styles.userEmail}>{currentUser?.email}</Text>
-            {isAdmin && (
-              <View style={styles.adminBadge}>
-                <Shield size={12} color="#fff" />
-                <Text style={styles.adminBadgeText}>Administrator</Text>
-              </View>
-            )}
-          </View>
+          {!isEditingProfile && (
+            <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+              <Edit2 size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
+
+        {isEditingProfile && (
+          <View style={styles.editSection}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Name</Text>
+              <TextInput
+                style={styles.profileInput}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Enter your name"
+                placeholderTextColor={Colors.textLight}
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.profileInput}
+                value={editEmail}
+                onChangeText={setEditEmail}
+                placeholder="Enter your email"
+                placeholderTextColor={Colors.textLight}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Password (leave empty to keep current)</Text>
+              <TextInput
+                style={styles.profileInput}
+                value={editPassword}
+                onChangeText={setEditPassword}
+                placeholder="Enter new password"
+                placeholderTextColor={Colors.textLight}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.editActions}>
+              <TouchableOpacity
+                style={[styles.editActionButton, styles.cancelButton]}
+                onPress={handleCancelEdit}
+                disabled={isUpdatingProfile}
+              >
+                <X size={18} color="#EF4444" />
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.editActionButton, styles.saveProfileButton]}
+                onPress={handleSaveProfile}
+                disabled={isUpdatingProfile}
+              >
+                {isUpdatingProfile ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Save size={18} color="#fff" />
+                    <Text style={styles.saveProfileButtonText}>Save Changes</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -306,10 +435,21 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 24,
   },
+  userHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flex: 1,
+  },
+  editButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.primary + '20',
   },
   userAvatar: {
     width: 60,
@@ -333,7 +473,7 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.text,
   },
-  userEmail: {
+  userEmailDisplay: {
     fontSize: 14,
     color: Colors.textLight,
   },
@@ -428,5 +568,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
     marginTop: 2,
+  },
+  editSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 16,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+  },
+  profileInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  editActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  cancelButton: {
+    backgroundColor: Colors.card,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#EF4444',
+  },
+  saveProfileButton: {
+    backgroundColor: Colors.primary,
+  },
+  saveProfileButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#fff',
   },
 });

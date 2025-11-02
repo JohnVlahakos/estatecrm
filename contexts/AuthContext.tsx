@@ -134,6 +134,23 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     }
   }, [users, currentUser]);
 
+  const updateUserProfile = useCallback(async (userId: string, updates: { name?: string; email?: string; password?: string }) => {
+    console.log('Updating user profile:', userId);
+    const updatedUsers = users.map(u => {
+      if (u.id === userId) {
+        return { ...u, ...updates };
+      }
+      return u;
+    });
+    await saveUsers(updatedUsers);
+
+    if (currentUser?.id === userId) {
+      const updatedCurrentUser = { ...currentUser, ...updates };
+      setCurrentUser(updatedCurrentUser);
+      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedCurrentUser));
+    }
+  }, [users, currentUser]);
+
   const getPendingUsers = useCallback(() => {
     return users.filter(u => u.status === 'pending');
   }, [users]);
@@ -151,6 +168,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     register,
     logout,
     updateUserStatus,
+    updateUserProfile,
     getPendingUsers,
     getAllUsers,
   }), [
@@ -160,6 +178,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     register,
     logout,
     updateUserStatus,
+    updateUserProfile,
     getPendingUsers,
     getAllUsers,
   ]);
