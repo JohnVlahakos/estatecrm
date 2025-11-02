@@ -45,6 +45,7 @@ export default function AppointmentsScreen() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedHour, setSelectedHour] = useState<number>(9);
   const [selectedMinute, setSelectedMinute] = useState<number>(0);
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   const groupedAppointments = useMemo(() => {
     const today = new Date();
@@ -348,8 +349,17 @@ export default function AppointmentsScreen() {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <ScrollView style={styles.modalScrollView}>
-            <View style={styles.modalContent}>
+          <View style={styles.modalContentWrapper}>
+            <ScrollView 
+              style={styles.modalScrollView}
+              onScroll={(event) => {
+                const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+                const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+                setIsAtBottom(isBottom);
+              }}
+              scrollEventThrottle={16}
+            >
+              <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>{editingAppointment ? 'Edit Appointment' : 'New Appointment'}</Text>
 
               <View style={styles.typePicker}>
@@ -487,6 +497,10 @@ export default function AppointmentsScreen() {
                 onChangeText={(text) => setNewAppointment({ ...newAppointment, notes: text })}
               />
 
+              <View style={{ height: 80 }} />
+              </View>
+            </ScrollView>
+            <View style={[styles.modalButtonsFixed, isAtBottom && styles.modalButtonsStatic]}>
               <View style={styles.modalButtons}>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.cancelButton]}
@@ -510,7 +524,7 @@ export default function AppointmentsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </ScrollView>
+          </View>
         </View>
       </Modal>
 
@@ -988,17 +1002,20 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContentWrapper: {
+    maxHeight: '90%',
   },
   modalScrollView: {
     flex: 1,
-    marginTop: 100,
   },
   modalContent: {
     backgroundColor: Colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    minHeight: '100%',
+    paddingBottom: 40,
   },
   modalTitle: {
     fontSize: 24,
@@ -1137,10 +1154,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
+  modalButtonsFixed: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.card,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalButtonsStatic: {
+    position: 'relative' as const,
+    shadowOpacity: 0,
+    elevation: 0,
+    borderTopWidth: 0,
+  },
   modalButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
   },
   modalButton: {
     flex: 1,
