@@ -1,5 +1,5 @@
 import { Tabs, router } from "expo-router";
-import { Home, Users, Building2, Calendar, Settings, TrendingUp } from "lucide-react-native";
+import { Home, Users, Building2, Calendar, TrendingUp } from "lucide-react-native";
 import React from "react";
 import { TouchableOpacity, Image, Text, StyleSheet } from "react-native";
 import Colors from "@/constants/colors";
@@ -94,8 +94,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
+          href: null,
           headerRight: () => <ProfileIcon />,
         }}
       />
