@@ -170,6 +170,9 @@ export interface SubscriptionPlan {
   features: string[];
   isActive: boolean;
   createdAt: string;
+  maxClients?: number;
+  maxProperties?: number;
+  hasMatchesFeature: boolean;
 }
 
 export interface UserSubscription {

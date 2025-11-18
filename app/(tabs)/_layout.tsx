@@ -5,6 +5,7 @@ import { TouchableOpacity, Image, Text, StyleSheet } from "react-native";
 import Colors from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationBadges } from "@/contexts/NotificationBadgeContext";
+import { useCRM } from "@/contexts/CRMContext";
 
 function ProfileIcon() {
   const { currentUser } = useAuth();
@@ -34,6 +35,7 @@ function ProfileIcon() {
 
 export default function TabLayout() {
   const { matchesCount, appointmentsCount } = useNotificationBadges();
+  const { canAccessMatches } = useCRM();
 
   return (
     <Tabs
@@ -94,6 +96,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TrendingUp size={24} color={color} />,
           headerRight: () => <ProfileIcon />,
           tabBarBadge: matchesCount > 0 ? matchesCount : undefined,
+          href: canAccessMatches ? undefined : null,
         }}
       />
       <Tabs.Screen

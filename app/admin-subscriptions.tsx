@@ -37,6 +37,9 @@ export default function AdminSubscriptionsScreen() {
     duration: '',
     features: '',
     isActive: true,
+    maxClients: '',
+    maxProperties: '',
+    hasMatchesFeature: false,
   });
 
   if (!isAdmin) {
@@ -53,6 +56,9 @@ export default function AdminSubscriptionsScreen() {
       duration: '',
       features: '',
       isActive: true,
+      maxClients: '',
+      maxProperties: '',
+      hasMatchesFeature: false,
     });
     setEditingPlan(null);
   };
@@ -70,6 +76,9 @@ export default function AdminSubscriptionsScreen() {
       duration: plan.duration.toString(),
       features: plan.features.join('\n'),
       isActive: plan.isActive,
+      maxClients: plan.maxClients?.toString() || '',
+      maxProperties: plan.maxProperties?.toString() || '',
+      hasMatchesFeature: plan.hasMatchesFeature,
     });
     setModalVisible(true);
   };
@@ -93,6 +102,19 @@ export default function AdminSubscriptionsScreen() {
       .map(f => f.trim())
       .filter(f => f.length > 0);
 
+    const maxClients = formData.maxClients ? parseInt(formData.maxClients) : undefined;
+    const maxProperties = formData.maxProperties ? parseInt(formData.maxProperties) : undefined;
+
+    if (formData.maxClients && isNaN(maxClients as number)) {
+      Alert.alert('Error', 'Please enter a valid number for max clients');
+      return;
+    }
+
+    if (formData.maxProperties && isNaN(maxProperties as number)) {
+      Alert.alert('Error', 'Please enter a valid number for max properties');
+      return;
+    }
+
     try {
       if (editingPlan) {
         await updatePlan(editingPlan.id, {
@@ -101,6 +123,9 @@ export default function AdminSubscriptionsScreen() {
           duration,
           features,
           isActive: formData.isActive,
+          maxClients,
+          maxProperties,
+          hasMatchesFeature: formData.hasMatchesFeature,
         });
         Alert.alert('Success', 'Plan updated successfully');
       } else {
@@ -110,6 +135,9 @@ export default function AdminSubscriptionsScreen() {
           duration,
           features,
           isActive: formData.isActive,
+          maxClients,
+          maxProperties,
+          hasMatchesFeature: formData.hasMatchesFeature,
         });
         Alert.alert('Success', 'Plan created successfully');
       }
@@ -170,6 +198,30 @@ export default function AdminSubscriptionsScreen() {
           <View style={styles.planDetail}>
             <Calendar size={16} color={Colors.textLight} />
             <Text style={styles.planDuration}>{item.duration} days</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.featuresSection}>
+        <Text style={styles.featuresTitle}>Limits:</Text>
+        <View style={styles.limitsContainer}>
+          <View style={styles.limitItem}>
+            <Text style={styles.limitLabel}>Max Clients:</Text>
+            <Text style={styles.limitValue}>
+              {item.maxClients ? item.maxClients.toString() : 'Unlimited'}
+            </Text>
+          </View>
+          <View style={styles.limitItem}>
+            <Text style={styles.limitLabel}>Max Properties:</Text>
+            <Text style={styles.limitValue}>
+              {item.maxProperties ? item.maxProperties.toString() : 'Unlimited'}
+            </Text>
+          </View>
+          <View style={styles.limitItem}>
+            <Text style={styles.limitLabel}>Matches Feature:</Text>
+            <Text style={[styles.limitValue, item.hasMatchesFeature ? styles.limitEnabled : styles.limitDisabled]}>
+              {item.hasMatchesFeature ? 'Enabled' : 'Disabled'}
+            </Text>
           </View>
         </View>
       </View>
@@ -293,6 +345,40 @@ export default function AdminSubscriptionsScreen() {
                     numberOfLines={6}
                     textAlignVertical="top"
                     placeholderTextColor={Colors.textLight}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Max Clients (Leave empty for unlimited)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.maxClients}
+                    onChangeText={(text) => setFormData({ ...formData, maxClients: text })}
+                    placeholder="e.g., 50 or leave empty"
+                    keyboardType="number-pad"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Max Properties (Leave empty for unlimited)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.maxProperties}
+                    onChangeText={(text) => setFormData({ ...formData, maxProperties: text })}
+                    placeholder="e.g., 100 or leave empty"
+                    keyboardType="number-pad"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                </View>
+
+                <View style={styles.switchGroup}>
+                  <Text style={styles.label}>Enable Matches Feature</Text>
+                  <Switch
+                    value={formData.hasMatchesFeature}
+                    onValueChange={(value) => setFormData({ ...formData, hasMatchesFeature: value })}
+                    trackColor={{ false: Colors.border, true: Colors.primary }}
+                    thumbColor="#fff"
                   />
                 </View>
 
@@ -564,5 +650,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600' as const,
     color: '#fff',
+  },
+  limitsContainer: {
+    gap: 8,
+    marginBottom: 8,
+  },
+  limitItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  limitLabel: {
+    fontSize: 14,
+    color: Colors.textLight,
+    fontWeight: '500' as const,
+  },
+  limitValue: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+  },
+  limitEnabled: {
+    color: '#10B981',
+  },
+  limitDisabled: {
+    color: '#EF4444',
   },
 });

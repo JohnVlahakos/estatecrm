@@ -24,6 +24,9 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     ],
     isActive: true,
     createdAt: new Date().toISOString(),
+    maxClients: 50,
+    maxProperties: 100,
+    hasMatchesFeature: false,
   },
   {
     id: 'pro',
@@ -40,6 +43,9 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     ],
     isActive: true,
     createdAt: new Date().toISOString(),
+    maxClients: undefined,
+    maxProperties: undefined,
+    hasMatchesFeature: true,
   },
 ];
 
@@ -238,6 +244,32 @@ export const [SubscriptionProvider, useSubscription] = createContextHook(() => {
     return plans;
   }, [plans]);
 
+  const getPlanLimits = useCallback((userId: string) => {
+    const subscription = getUserSubscription(userId);
+    if (!subscription || !subscription.planId) {
+      return {
+        maxClients: undefined,
+        maxProperties: undefined,
+        hasMatchesFeature: false,
+      };
+    }
+
+    const plan = plans.find(p => p.id === subscription.planId);
+    if (!plan) {
+      return {
+        maxClients: undefined,
+        maxProperties: undefined,
+        hasMatchesFeature: false,
+      };
+    }
+
+    return {
+      maxClients: plan.maxClients,
+      maxProperties: plan.maxProperties,
+      hasMatchesFeature: plan.hasMatchesFeature,
+    };
+  }, [plans, getUserSubscription]);
+
   return useMemo(() => ({
     plans,
     subscriptions,
@@ -252,6 +284,7 @@ export const [SubscriptionProvider, useSubscription] = createContextHook(() => {
     deletePlan,
     getActivePlans,
     getAllPlans,
+    getPlanLimits,
   }), [
     plans,
     subscriptions,
@@ -266,5 +299,6 @@ export const [SubscriptionProvider, useSubscription] = createContextHook(() => {
     deletePlan,
     getActivePlans,
     getAllPlans,
+    getPlanLimits,
   ]);
 });

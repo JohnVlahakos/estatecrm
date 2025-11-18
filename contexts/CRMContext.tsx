@@ -5,6 +5,8 @@ import type { Client, Property, Appointment, MatchView } from '@/types';
 import { mockClients, mockProperties, mockAppointments } from '@/utils/mockData';
 import { schedulePropertyAvailabilityNotification, cancelScheduledNotification, sendNewMatchNotification, scheduleAppointmentNotification } from '@/utils/notifications';
 import { useNotificationBadges } from '@/contexts/NotificationBadgeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const STORAGE_KEYS = {
   CLIENTS: '@crm_clients',
@@ -16,6 +18,8 @@ const STORAGE_KEYS = {
 
 export const [CRMProvider, useCRM] = createContextHook(() => {
   const { updateMatchesCount, updateAppointmentsCount } = useNotificationBadges();
+  const { currentUser } = useAuth();
+  const { getPlanLimits } = useSubscription();
   const [clients, setClients] = useState<Client[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -89,13 +93,20 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   };
 
   const addClient = useCallback(async (client: Omit<Client, 'id' | 'createdAt'>) => {
+    if (currentUser) {
+      const limits = getPlanLimits(currentUser.id);
+      if (limits.maxClients !== undefined && clients.length >= limits.maxClients) {
+        throw new Error(`You have reached the maximum limit of ${limits.maxClients} clients for your plan.`);
+      }
+    }
+
     const newClient: Client = {
       ...client,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
     await saveClients([...clients, newClient]);
-  }, [clients]);
+  }, [clients, currentUser, getPlanLimits]);
 
   const updateClient = useCallback(async (id: string, updates: Partial<Client>) => {
     const updated = clients.map(c => c.id === id ? { ...c, ...updates } : c);
@@ -221,6 +232,13 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
   }, []);
 
   const addProperty = useCallback(async (property: Omit<Property, 'id' | 'createdAt'>) => {
+    if (currentUser) {
+      const limits = getPlanLimits(currentUser.id);
+      if (limits.maxProperties !== undefined && properties.length >= limits.maxProperties) {
+        throw new Error(`You have reached the maximum limit of ${limits.maxProperties} properties for your plan.`);
+      }
+    }
+
     const newProperty: Property = {
       ...property,
       id: Date.now().toString(),
@@ -240,7 +258,7 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
         }
       });
     }
-  }, [clients, calculateMatchScore]);
+  }, [clients, calculateMatchScore, currentUser, getPlanLimits, properties.length]);
 
   const updateProperty = useCallback(async (id: string, updates: Partial<Property>) => {
     setProperties(currentProperties => {
@@ -436,6 +454,24 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     return isExcluded;
   }, [excludedMatches]);
 
+  const canAccessMatches = useMemo(() => {
+    if (!currentUser) return false;
+    const limits = getPlanLimits(currentUser.id);
+    return limits.hasMatchesFeature;
+  }, [currentUser, getPlanLimits]);
+
+  const clientsLimit = useMemo(() => {
+    if (!currentUser) return undefined;
+    const limits = getPlanLimits(currentUser.id);
+    return limits.maxClients;
+  }, [currentUser, getPlanLimits]);
+
+  const propertiesLimit = useMemo(() => {
+    if (!currentUser) return undefined;
+    const limits = getPlanLimits(currentUser.id);
+    return limits.maxProperties;
+  }, [currentUser, getPlanLimits]);
+
   useEffect(() => {
     if (!isLoading) {
       updateMatchesCount(totalMatches);
@@ -466,5 +502,8 @@ export const [CRMProvider, useCRM] = createContextHook(() => {
     isMatchViewed,
     excludeMatch,
     isMatchExcluded,
+    canAccessMatches,
+    clientsLimit,
+    propertiesLimit,
   };
 });
