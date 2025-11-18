@@ -695,16 +695,16 @@ export default function AppointmentsScreen() {
 
       <Modal
         visible={datePickerVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setDatePickerVisible(false)}
       >
-        <TouchableOpacity 
-          style={styles.pickerModalOverlay}
-          activeOpacity={1}
-          onPress={() => setDatePickerVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+        <View style={styles.pickerModalOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setDatePickerVisible(false)}
+          />
           <View style={styles.calendarModalContent}>
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
@@ -788,22 +788,21 @@ export default function AppointmentsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       <Modal
         visible={timePickerVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setTimePickerVisible(false)}
       >
-        <TouchableOpacity 
-          style={styles.pickerModalOverlay}
-          activeOpacity={1}
-          onPress={() => setTimePickerVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+        <View style={styles.pickerModalOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setTimePickerVisible(false)}
+          />
           <View style={styles.timeModalContent}>
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
@@ -877,8 +876,7 @@ export default function AppointmentsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
