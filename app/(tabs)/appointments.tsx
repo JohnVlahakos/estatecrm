@@ -579,6 +579,7 @@ export default function AppointmentsScreen() {
         animationType="slide"
         transparent={true}
         onRequestClose={() => setClientSearchModalVisible(false)}
+        presentationStyle="overFullScreen"
       >
         <View style={styles.searchModalOverlay}>
           <View style={styles.searchModalContent}>
@@ -637,6 +638,7 @@ export default function AppointmentsScreen() {
         animationType="slide"
         transparent={true}
         onRequestClose={() => setPropertySearchModalVisible(false)}
+        presentationStyle="overFullScreen"
       >
         <View style={styles.searchModalOverlay}>
           <View style={styles.searchModalContent}>
@@ -704,6 +706,7 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setDatePickerVisible(false)}
         statusBarTranslucent
+        presentationStyle="overFullScreen"
       >
         <Pressable 
           style={styles.pickerModalOverlay}
@@ -804,6 +807,7 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setTimePickerVisible(false)}
         statusBarTranslucent
+        presentationStyle="overFullScreen"
       >
         <Pressable 
           style={styles.pickerModalOverlay}
@@ -1063,6 +1067,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    zIndex: 1,
   },
   modalContentWrapper: {
     height: '90%',
@@ -1131,6 +1136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    zIndex: 2,
   },
   searchModalContent: {
     backgroundColor: Colors.card,
@@ -1316,6 +1322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 3,
   },
   calendarModalContent: {
     backgroundColor: Colors.card,
