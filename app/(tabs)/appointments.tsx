@@ -680,8 +680,8 @@ export default function AppointmentsScreen() {
             </View>
 
             <View style={styles.weekDaysRow}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
-                <Text key={`weekday-${idx}-${day}`} style={styles.weekDayText}>{day}</Text>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <Text key={`weekday-${day}`} style={styles.weekDayText}>{day}</Text>
               ))}
             </View>
 
@@ -693,7 +693,7 @@ export default function AppointmentsScreen() {
                 today.setHours(0, 0, 0, 0);
                 
                 for (let i = 0; i < firstDay; i++) {
-                  days.push(<View key={`empty-day-${i}`} style={styles.dayCell} />);
+                  days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
                 }
                 
                 for (let day = 1; day <= daysInMonth; day++) {
@@ -703,7 +703,7 @@ export default function AppointmentsScreen() {
                   
                   days.push(
                     <TouchableOpacity
-                      key={`day-${day}-${selectedDate.getMonth()}`}
+                      key={`day-${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${day}`}
                       style={[
                         styles.dayCell,
                         styles.dayButton,

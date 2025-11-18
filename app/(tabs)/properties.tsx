@@ -521,9 +521,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Υποκατηγορία</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {[{ value: 'all', label: 'Όλα' }, { value: 'apartment', label: 'Διαμέρισμα' }, { value: 'house', label: 'Σπίτι' }, { value: 'plot', label: 'Οικόπεδο' }, { value: 'commercial', label: 'Εμπορικό' }].map((option, optIdx) => (
+                  {[{ value: 'all', label: 'Όλα' }, { value: 'apartment', label: 'Διαμέρισμα' }, { value: 'house', label: 'Σπίτι' }, { value: 'plot', label: 'Οικόπεδο' }, { value: 'commercial', label: 'Εμπορικό' }].map((option) => (
                     <TouchableOpacity
-                      key={`filter-type-${optIdx}-${option.value}`}
+                      key={`filter-type-${option.value}`}
                       style={[
                         styles.filterOption,
                         filters.type === option.value && styles.filterOptionActive,
@@ -597,9 +597,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Είδος ακινήτου</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {[{ value: 'all', label: 'Όλα' }, { value: 'active', label: 'Νεόδμητο' }, { value: 'rented', label: 'Φοιτητική κατοικία' }].map((option, optIdx) => (
+                  {[{ value: 'all', label: 'Όλα' }, { value: 'active', label: 'Νεόδμητο' }, { value: 'rented', label: 'Φοιτητική κατοικία' }].map((option) => (
                     <TouchableOpacity
-                      key={`filter-status-${optIdx}-${option.value}`}
+                      key={`filter-status-${option.value}`}
                       style={[
                         styles.filterOption,
                         filters.status === option.value && styles.filterOptionActive,
@@ -622,9 +622,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Μόνο με</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {['Εικόνες', 'Μειωμένη τιμή'].map((feature, featIdx) => (
+                  {['Εικόνες', 'Μειωμένη τιμή'].map((feature) => (
                     <TouchableOpacity
-                      key={`filter-feature-only-${featIdx}-${feature}`}
+                      key={`filter-feature-${feature}`}
                       style={[
                         styles.filterOption,
                         filters.features.includes(feature) && styles.filterOptionActive,
@@ -697,9 +697,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Χαρακτηριστικά</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {['Επιπλωμένο', 'Αποθήκη', 'Πόρτα ασφαλείας'].map((feature, featIdx) => (
+                  {['Επιπλωμένο', 'Αποθήκη', 'Πόρτα ασφαλείας'].map((feature) => (
                     <TouchableOpacity
-                      key={`filter-characteristic-${featIdx}-${feature}`}
+                      key={`filter-char-${feature}`}
                       style={[
                         styles.filterOption,
                         filters.features.includes(feature) && styles.filterOptionActive,
@@ -846,11 +846,11 @@ export default function PropertiesScreen() {
                           city.toLowerCase().includes(locationSearchQuery.toLowerCase())
                         )
                         .sort()
-                        .map((city, index) => {
+                        .map((city) => {
                           const isSelected = newProperty.location === city;
                           return (
                             <TouchableOpacity
-                              key={`property-city-${index}-${city}`}
+                              key={`property-city-${city}`}
                               style={[styles.locationItem, isSelected && styles.locationItemSelected]}
                               onPress={() => {
                                 setNewProperty({ ...newProperty, location: city });
@@ -1105,7 +1105,7 @@ export default function PropertiesScreen() {
                   const firstFeature = features[i];
                   const secondFeature = features[i + 1];
                   rows.push(
-                    <View key={`feat-row-${i}-${firstFeature.key}-${secondFeature?.key || 'single'}`} style={styles.row}>
+                    <View key={`feat-row-${firstFeature.key}-${secondFeature?.key || 'end'}`} style={styles.row}>
                       <View style={[styles.fieldContainer, { flex: 1 }]}>
                         <Text style={styles.fieldLabel}>{firstFeature.label}</Text>
                         <View style={styles.yesNoContainer}>

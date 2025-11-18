@@ -618,9 +618,9 @@ export default function ClientsScreen() {
                 <View style={styles.fieldContainer}>
                   <Text style={styles.fieldLabel}>Τύπος Ακινήτου</Text>
                   <View style={styles.propertyTypeGrid}>
-                    {([{ value: undefined, label: 'Όλα', key: 'all' }, { value: 'apartment', label: 'Διαμέρισμα', key: 'apartment' }, { value: 'house', label: 'Σπίτι', key: 'house' }, { value: 'plot', label: 'Οικόπεδο', key: 'plot' }, { value: 'commercial', label: 'Εμπορικό', key: 'commercial' }] as const).map((option, optIdx) => (
+                    {([{ value: undefined as PropertyType | undefined, label: 'Όλα', key: 'all' }, { value: 'apartment' as PropertyType, label: 'Διαμέρισμα', key: 'apartment' }, { value: 'house' as PropertyType, label: 'Σπίτι', key: 'house' }, { value: 'plot' as PropertyType, label: 'Οικόπεδο', key: 'plot' }, { value: 'commercial' as PropertyType, label: 'Εμπορικό', key: 'commercial' }]).map((option) => (
                       <TouchableOpacity
-                        key={`prop-type-option-${optIdx}-${option.key}`}
+                        key={option.key}
                         style={[
                           styles.typeChipSmall,
                           newClient.desiredPropertyType === option.value && styles.typeChipSmallSelected,
@@ -702,7 +702,7 @@ export default function ClientsScreen() {
                                 const isSelected = newClient.desiredLocations.includes(city);
                                 return (
                                   <TouchableOpacity
-                                    key={`city-selector-${index}-${city}`}
+                                    key={`city-selector-${city}-${index}`}
                                     style={[styles.locationItem, isSelected && styles.locationItemSelected]}
                                     onPress={() => {
                                       if (isSelected) {
@@ -880,7 +880,7 @@ export default function ClientsScreen() {
                   const rows = [];
                   for (let i = 0; i < preferences.length; i += 2) {
                     rows.push(
-                      <View key={`pref-row-${i}-${preferences[i].key}-${preferences[i + 1]?.key || 'single'}`} style={styles.row}>
+                      <View key={`pref-row-${preferences[i].key}-${preferences[i + 1]?.key || 'end'}`} style={styles.row}>
                         <View style={[styles.fieldContainer, { flex: 1 }]}>
                           <Text style={styles.fieldLabel}>{preferences[i].label}</Text>
                           <View style={styles.yesNoContainer}>
