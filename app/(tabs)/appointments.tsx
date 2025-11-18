@@ -703,15 +703,12 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setDatePickerVisible(false)}
       >
-        <TouchableOpacity 
-          style={styles.pickerModalOverlay}
-          activeOpacity={1}
-          onPress={() => setDatePickerVisible(false)}
-        >
+        <View style={styles.pickerModalOverlay}>
           <TouchableOpacity 
+            style={styles.pickerModalBackdrop}
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+            onPress={() => setDatePickerVisible(false)}
+          />
           <View style={styles.calendarModalContent}>
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
@@ -795,8 +792,7 @@ export default function AppointmentsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       <Modal
@@ -805,15 +801,12 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setTimePickerVisible(false)}
       >
-        <TouchableOpacity 
-          style={styles.pickerModalOverlay}
-          activeOpacity={1}
-          onPress={() => setTimePickerVisible(false)}
-        >
+        <View style={styles.pickerModalOverlay}>
           <TouchableOpacity 
+            style={styles.pickerModalBackdrop}
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+            onPress={() => setTimePickerVisible(false)}
+          />
           <View style={styles.timeModalContent}>
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
@@ -887,8 +880,7 @@ export default function AppointmentsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
@@ -1315,10 +1307,17 @@ const styles = StyleSheet.create({
   },
   pickerModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  pickerModalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   calendarModalContent: {
     backgroundColor: Colors.card,
