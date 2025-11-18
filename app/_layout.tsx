@@ -23,15 +23,16 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'clients' || segments[0] === 'properties' || segments[0] === 'appointments' || segments[0] === 'admin-users' || segments[0] === 'admin-subscriptions' || segments[0] === 'subscription' || segments[0] === 'admin-cities';
+    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'admin-users' || segments[0] === 'admin-subscriptions' || segments[0] === 'subscription' || segments[0] === 'admin-cities';
+    const isLoginOrRegister = segments[0] === 'login' || segments[0] === 'register';
 
-    console.log('Auth state:', { isAuthenticated, isLoading, segments, inAuthGroup });
+    console.log('Auth state:', { isAuthenticated, isLoading, segments, inAuthGroup, isLoginOrRegister });
 
     if (!isAuthenticated && inAuthGroup) {
-      console.log('Redirecting to login...');
+      console.log('Not authenticated, redirecting to login...');
       router.replace('/login');
-    } else if (isAuthenticated && !inAuthGroup) {
-      console.log('Redirecting to tabs...');
+    } else if (isAuthenticated && isLoginOrRegister) {
+      console.log('Authenticated, redirecting to tabs...');
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, segments, isLoading, router]);
