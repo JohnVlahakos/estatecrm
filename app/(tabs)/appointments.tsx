@@ -179,6 +179,10 @@ export default function AppointmentsScreen() {
     });
     setClientSearchQuery('');
     setPropertySearchQuery('');
+    setDatePickerVisible(false);
+    setTimePickerVisible(false);
+    setClientSearchModalVisible(false);
+    setPropertySearchModalVisible(false);
   };
 
   const handleDeleteAppointment = async () => {
@@ -699,12 +703,15 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setDatePickerVisible(false)}
       >
-        <View style={styles.pickerModalOverlay}>
+        <TouchableOpacity 
+          style={styles.pickerModalOverlay}
+          activeOpacity={1}
+          onPress={() => setDatePickerVisible(false)}
+        >
           <TouchableOpacity 
-            style={StyleSheet.absoluteFill}
             activeOpacity={1}
-            onPress={() => setDatePickerVisible(false)}
-          />
+            onPress={(e) => e.stopPropagation()}
+          >
           <View style={styles.calendarModalContent}>
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
@@ -788,7 +795,8 @@ export default function AppointmentsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -797,12 +805,15 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setTimePickerVisible(false)}
       >
-        <View style={styles.pickerModalOverlay}>
+        <TouchableOpacity 
+          style={styles.pickerModalOverlay}
+          activeOpacity={1}
+          onPress={() => setTimePickerVisible(false)}
+        >
           <TouchableOpacity 
-            style={StyleSheet.absoluteFill}
             activeOpacity={1}
-            onPress={() => setTimePickerVisible(false)}
-          />
+            onPress={(e) => e.stopPropagation()}
+          >
           <View style={styles.timeModalContent}>
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
@@ -876,7 +887,8 @@ export default function AppointmentsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
