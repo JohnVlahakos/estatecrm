@@ -618,9 +618,9 @@ export default function ClientsScreen() {
                 <View style={styles.fieldContainer}>
                   <Text style={styles.fieldLabel}>Τύπος Ακινήτου</Text>
                   <View style={styles.propertyTypeGrid}>
-                    {([{ value: undefined, label: 'Όλα', key: 'all' }, { value: 'apartment', label: 'Διαμέρισμα', key: 'apartment' }, { value: 'house', label: 'Σπίτι', key: 'house' }, { value: 'plot', label: 'Οικόπεδο', key: 'plot' }, { value: 'commercial', label: 'Εμπορικό', key: 'commercial' }] as const).map((option) => (
+                    {([{ value: undefined, label: 'Όλα', key: 'all' }, { value: 'apartment', label: 'Διαμέρισμα', key: 'apartment' }, { value: 'house', label: 'Σπίτι', key: 'house' }, { value: 'plot', label: 'Οικόπεδο', key: 'plot' }, { value: 'commercial', label: 'Εμπορικό', key: 'commercial' }] as const).map((option, optIdx) => (
                       <TouchableOpacity
-                        key={option.key}
+                        key={`prop-type-option-${optIdx}-${option.key}`}
                         style={[
                           styles.typeChipSmall,
                           newClient.desiredPropertyType === option.value && styles.typeChipSmallSelected,
@@ -702,7 +702,7 @@ export default function ClientsScreen() {
                                 const isSelected = newClient.desiredLocations.includes(city);
                                 return (
                                   <TouchableOpacity
-                                    key={`city-selector-${index}`}
+                                    key={`city-selector-${index}-${city}`}
                                     style={[styles.locationItem, isSelected && styles.locationItemSelected]}
                                     onPress={() => {
                                       if (isSelected) {
