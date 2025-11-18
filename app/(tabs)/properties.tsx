@@ -850,7 +850,7 @@ export default function PropertiesScreen() {
                           const isSelected = newProperty.location === city;
                           return (
                             <TouchableOpacity
-                              key={`property-city-${index}-${city}`}
+                              key={`property-city-${index}`}
                               style={[styles.locationItem, isSelected && styles.locationItemSelected]}
                               onPress={() => {
                                 setNewProperty({ ...newProperty, location: city });
