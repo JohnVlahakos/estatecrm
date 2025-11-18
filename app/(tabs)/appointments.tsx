@@ -441,7 +441,9 @@ export default function AppointmentsScreen() {
                 <Text style={styles.pickerLabel}>Date *</Text>
                 <TouchableOpacity
                   style={styles.searchableInput}
+                  activeOpacity={0.7}
                   onPress={() => {
+                    console.log('Date picker button pressed');
                     if (newAppointment.date) {
                       setSelectedDate(new Date(newAppointment.date));
                     } else {
@@ -472,7 +474,9 @@ export default function AppointmentsScreen() {
                 <Text style={styles.pickerLabel}>Time *</Text>
                 <TouchableOpacity
                   style={styles.searchableInput}
+                  activeOpacity={0.7}
                   onPress={() => {
+                    console.log('Time picker button pressed');
                     if (newAppointment.time) {
                       const [hour, minute] = newAppointment.time.split(':').map(Number);
                       setSelectedHour(hour);
@@ -499,7 +503,11 @@ export default function AppointmentsScreen() {
                 <Text style={styles.pickerLabel}>Client *</Text>
                 <TouchableOpacity
                   style={styles.searchableInput}
-                  onPress={() => setClientSearchModalVisible(true)}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    console.log('Client picker button pressed');
+                    setClientSearchModalVisible(true);
+                  }}
                 >
                   <Text style={[
                     styles.searchableInputText,
@@ -517,7 +525,11 @@ export default function AppointmentsScreen() {
                 <Text style={styles.pickerLabel}>Property (Optional)</Text>
                 <TouchableOpacity
                   style={styles.searchableInput}
-                  onPress={() => setPropertySearchModalVisible(true)}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    console.log('Property picker button pressed');
+                    setPropertySearchModalVisible(true);
+                  }}
                 >
                   <Text style={[
                     styles.searchableInputText,
