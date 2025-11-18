@@ -523,7 +523,7 @@ export default function PropertiesScreen() {
                 <View style={styles.filterOptionsRow}>
                   {[{ value: 'all', label: 'Όλα' }, { value: 'apartment', label: 'Διαμέρισμα' }, { value: 'house', label: 'Σπίτι' }, { value: 'plot', label: 'Οικόπεδο' }, { value: 'commercial', label: 'Εμπορικό' }].map((option, idx) => (
                     <TouchableOpacity
-                      key={`filter-type-${option.value}-${idx}`}
+                      key={`filter-type-${idx}-${option.label}`}
                       style={[
                         styles.filterOption,
                         filters.type === option.value && styles.filterOptionActive,
@@ -599,7 +599,7 @@ export default function PropertiesScreen() {
                 <View style={styles.filterOptionsRow}>
                   {[{ value: 'all', label: 'Όλα' }, { value: 'active', label: 'Νεόδμητο' }, { value: 'rented', label: 'Φοιτητική κατοικία' }].map((option, idx) => (
                     <TouchableOpacity
-                      key={`filter-status-${option.value}-${idx}`}
+                      key={`filter-status-${idx}-${option.label}`}
                       style={[
                         styles.filterOption,
                         filters.status === option.value && styles.filterOptionActive,
@@ -624,7 +624,7 @@ export default function PropertiesScreen() {
                 <View style={styles.filterOptionsRow}>
                   {['Εικόνες', 'Μειωμένη τιμή'].map((feature, idx) => (
                     <TouchableOpacity
-                      key={`filter-feature-${feature}-${idx}`}
+                      key={`filter-feature-${idx}-${feature}`}
                       style={[
                         styles.filterOption,
                         filters.features.includes(feature) && styles.filterOptionActive,
@@ -699,7 +699,7 @@ export default function PropertiesScreen() {
                 <View style={styles.filterOptionsRow}>
                   {['Επιπλωμένο', 'Αποθήκη', 'Πόρτα ασφαλείας'].map((feature, idx) => (
                     <TouchableOpacity
-                      key={`filter-char-${feature}-${idx}`}
+                      key={`filter-char-${idx}-${feature}`}
                       style={[
                         styles.filterOption,
                         filters.features.includes(feature) && styles.filterOptionActive,
