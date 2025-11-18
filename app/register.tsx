@@ -40,11 +40,6 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (!selectedPlanId) {
-      Alert.alert('Error', 'Please select a subscription plan');
-      return;
-    }
-
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
@@ -52,6 +47,11 @@ export default function RegisterScreen() {
 
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (!selectedPlanId) {
+      Alert.alert('Error', 'Please scroll down and select a subscription plan to continue');
       return;
     }
 
@@ -152,8 +152,13 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Choose Your Plan</Text>
-            <Text style={styles.sectionSubtitle}>{activePlans.length} plans available</Text>
+            <Text style={styles.sectionTitle}>Choose Your Plan *</Text>
+            <Text style={styles.sectionSubtitle}>Select a plan to complete registration</Text>
+            {!selectedPlanId && (
+              <View style={styles.requiredNotice}>
+                <Text style={styles.requiredText}>⚠️ Plan selection is required</Text>
+              </View>
+            )}
           </View>
 
           {plansLoading ? (
@@ -202,16 +207,21 @@ export default function RegisterScreen() {
           )}
 
           <TouchableOpacity
-            style={[styles.button, isSubmitting && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              (isSubmitting || !selectedPlanId) && styles.buttonDisabled
+            ]}
             onPress={handleRegister}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !selectedPlanId}
           >
             {isSubmitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>
                 <UserPlus size={20} color="#fff" />
-                <Text style={styles.buttonText}>Register</Text>
+                <Text style={styles.buttonText}>
+                  {!selectedPlanId ? 'Select a Plan First' : 'Register'}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -424,5 +434,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
     flex: 1,
+  },
+  requiredNotice: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  requiredText: {
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '600' as const,
   },
 });
