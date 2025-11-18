@@ -102,31 +102,66 @@ export default function AppointmentsScreen() {
   };
 
   const handleAddAppointment = async () => {
-    if (!newAppointment.title || !newAppointment.clientId || !newAppointment.date) return;
+    console.log('handleAddAppointment called', { newAppointment, editingAppointment });
+    
+    if (!newAppointment.title) {
+      console.log('Missing title');
+      alert('Please enter a title');
+      return;
+    }
+    
+    if (!newAppointment.clientId) {
+      console.log('Missing clientId');
+      alert('Please select a client');
+      return;
+    }
+    
+    if (!newAppointment.date) {
+      console.log('Missing date');
+      alert('Please select a date');
+      return;
+    }
+
+    if (!newAppointment.time) {
+      console.log('Missing time');
+      alert('Please select a time');
+      return;
+    }
 
     const appointmentData = {
       ...newAppointment,
       propertyId: newAppointment.propertyId || undefined,
     };
 
-    if (editingAppointment) {
-      await updateAppointment(editingAppointment.id, appointmentData);
-    } else {
-      await addAppointment(appointmentData);
-    }
+    try {
+      console.log('Attempting to save appointment:', appointmentData);
+      
+      if (editingAppointment) {
+        console.log('Updating existing appointment');
+        await updateAppointment(editingAppointment.id, appointmentData);
+        console.log('Updated successfully');
+      } else {
+        console.log('Adding new appointment');
+        await addAppointment(appointmentData);
+        console.log('Added successfully');
+      }
 
-    setNewAppointment({
-      title: '',
-      type: 'meeting',
-      clientId: '',
-      propertyId: '',
-      date: '',
-      time: '',
-      notes: '',
-      completed: false,
-    });
-    setEditingAppointment(null);
-    setModalVisible(false);
+      setNewAppointment({
+        title: '',
+        type: 'meeting',
+        clientId: '',
+        propertyId: '',
+        date: '',
+        time: '',
+        notes: '',
+        completed: false,
+      });
+      setEditingAppointment(null);
+      setModalVisible(false);
+    } catch (error) {
+      console.error('Error saving appointment:', error);
+      alert(`Failed to save appointment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const handleCloseModal = () => {
@@ -426,7 +461,7 @@ export default function AppointmentsScreen() {
               </View>
 
               <View style={styles.pickerContainer}>
-                <Text style={styles.pickerLabel}>Time</Text>
+                <Text style={styles.pickerLabel}>Time *</Text>
                 <TouchableOpacity
                   style={styles.searchableInput}
                   onPress={() => {
