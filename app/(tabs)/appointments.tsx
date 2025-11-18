@@ -1041,6 +1041,9 @@ const styles = StyleSheet.create({
   },
   modalContentWrapper: {
     maxHeight: '90%',
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   modalScrollView: {
     flex: 1,
