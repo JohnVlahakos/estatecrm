@@ -422,12 +422,15 @@ export default function AppointmentsScreen() {
                 </View>
               </View>
 
-              <TextInput
-                style={styles.input}
-                placeholder="Title *"
-                value={newAppointment.title}
-                onChangeText={(text) => setNewAppointment({ ...newAppointment, title: text })}
-              />
+              <View style={styles.pickerContainer}>
+                <Text style={styles.pickerLabel}>Title *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter appointment title"
+                  value={newAppointment.title}
+                  onChangeText={(text) => setNewAppointment({ ...newAppointment, title: text })}
+                />
+              </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Date *</Text>
@@ -523,14 +526,17 @@ export default function AppointmentsScreen() {
                 </TouchableOpacity>
               </View>
 
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Notes"
-                value={newAppointment.notes}
-                multiline
-                numberOfLines={3}
-                onChangeText={(text) => setNewAppointment({ ...newAppointment, notes: text })}
-              />
+              <View style={styles.pickerContainer}>
+                <Text style={styles.pickerLabel}>Notes (Optional)</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Add any additional notes"
+                  value={newAppointment.notes}
+                  multiline
+                  numberOfLines={3}
+                  onChangeText={(text) => setNewAppointment({ ...newAppointment, notes: text })}
+                />
+              </View>
 
               <View style={{ height: 120 }} />
               </View>
