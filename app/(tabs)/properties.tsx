@@ -521,9 +521,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Υποκατηγορία</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {[{ value: 'all', label: 'Όλα' }, { value: 'apartment', label: 'Διαμέρισμα' }, { value: 'house', label: 'Σπίτι' }, { value: 'plot', label: 'Οικόπεδο' }, { value: 'commercial', label: 'Εμπορικό' }].map((option) => (
+                  {[{ value: 'all', label: 'Όλα' }, { value: 'apartment', label: 'Διαμέρισμα' }, { value: 'house', label: 'Σπίτι' }, { value: 'plot', label: 'Οικόπεδο' }, { value: 'commercial', label: 'Εμπορικό' }].map((option, idx) => (
                     <TouchableOpacity
-                      key={`filter-type-${option.value}`}
+                      key={`filter-type-${option.value}-${idx}`}
                       style={[
                         styles.filterOption,
                         filters.type === option.value && styles.filterOptionActive,
@@ -597,9 +597,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Είδος ακινήτου</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {[{ value: 'all', label: 'Όλα' }, { value: 'active', label: 'Νεόδμητο' }, { value: 'rented', label: 'Φοιτητική κατοικία' }].map((option) => (
+                  {[{ value: 'all', label: 'Όλα' }, { value: 'active', label: 'Νεόδμητο' }, { value: 'rented', label: 'Φοιτητική κατοικία' }].map((option, idx) => (
                     <TouchableOpacity
-                      key={`filter-status-${option.value}`}
+                      key={`filter-status-${option.value}-${idx}`}
                       style={[
                         styles.filterOption,
                         filters.status === option.value && styles.filterOptionActive,
@@ -622,9 +622,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Μόνο με</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {['Εικόνες', 'Μειωμένη τιμή'].map((feature) => (
+                  {['Εικόνες', 'Μειωμένη τιμή'].map((feature, idx) => (
                     <TouchableOpacity
-                      key={`filter-feature-${feature}`}
+                      key={`filter-feature-${feature}-${idx}`}
                       style={[
                         styles.filterOption,
                         filters.features.includes(feature) && styles.filterOptionActive,
@@ -697,9 +697,9 @@ export default function PropertiesScreen() {
                   <Text style={styles.filterSectionTitle}>Χαρακτηριστικά</Text>
                 </View>
                 <View style={styles.filterOptionsRow}>
-                  {['Επιπλωμένο', 'Αποθήκη', 'Πόρτα ασφαλείας'].map((feature) => (
+                  {['Επιπλωμένο', 'Αποθήκη', 'Πόρτα ασφαλείας'].map((feature, idx) => (
                     <TouchableOpacity
-                      key={`filter-char-${feature}`}
+                      key={`filter-char-${feature}-${idx}`}
                       style={[
                         styles.filterOption,
                         filters.features.includes(feature) && styles.filterOptionActive,

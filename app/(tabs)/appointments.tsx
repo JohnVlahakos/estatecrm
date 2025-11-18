@@ -680,8 +680,8 @@ export default function AppointmentsScreen() {
             </View>
 
             <View style={styles.weekDaysRow}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <Text key={`weekday-${day}`} style={styles.weekDayText}>{day}</Text>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+                <Text key={`weekday-${day}-${idx}`} style={styles.weekDayText}>{day}</Text>
               ))}
             </View>
 
