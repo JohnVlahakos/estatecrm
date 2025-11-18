@@ -117,9 +117,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   }, [users]);
 
   const logout = useCallback(async () => {
-    console.log('User logged out');
-    setCurrentUser(null);
+    console.log('Logging out user...');
     await AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    setCurrentUser(null);
+    console.log('User logged out successfully');
   }, []);
 
   const updateUserStatus = useCallback(async (userId: string, status: UserStatus) => {

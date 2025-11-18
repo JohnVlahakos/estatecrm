@@ -15,6 +15,7 @@ import type { User } from '@/types';
 
 export default function AdminUsersScreen() {
   const { getAllUsers, updateUserStatus, isAdmin } = useAuth();
+  const [refreshKey, setRefreshKey] = React.useState(0);
 
   if (!isAdmin) {
     router.back();
@@ -32,7 +33,10 @@ export default function AdminUsersScreen() {
         {
           text: 'Approve',
           onPress: async () => {
+            console.log('Approving user:', user.id);
             await updateUserStatus(user.id, 'approved');
+            setRefreshKey(prev => prev + 1);
+            console.log('User approved successfully');
             Alert.alert('Success', `${user.name} has been approved`);
           },
         },
@@ -50,7 +54,10 @@ export default function AdminUsersScreen() {
           text: 'Reject',
           style: 'destructive',
           onPress: async () => {
+            console.log('Rejecting user:', user.id);
             await updateUserStatus(user.id, 'rejected');
+            setRefreshKey(prev => prev + 1);
+            console.log('User rejected successfully');
             Alert.alert('Success', `${user.name} has been rejected`);
           },
         },
@@ -191,6 +198,7 @@ export default function AdminUsersScreen() {
           data={users}
           renderItem={renderUser}
           keyExtractor={(item) => item.id}
+          extraData={refreshKey}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.emptyState}>

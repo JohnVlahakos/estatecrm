@@ -136,8 +136,9 @@ export default function SettingsScreen() {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
+            console.log('Logout button pressed');
             await logout();
-            router.replace('/login');
+            console.log('Logout completed, navigating to login');
           },
         },
       ]
