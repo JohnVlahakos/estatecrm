@@ -1105,7 +1105,7 @@ export default function PropertiesScreen() {
                   const firstFeature = features[i];
                   const secondFeature = features[i + 1];
                   rows.push(
-                    <View key={`feat-row-${i}-${firstFeature.key}`} style={styles.row}>
+                    <View key={`feat-row-${i}-${firstFeature.key}-${secondFeature?.key || 'single'}`} style={styles.row}>
                       <View style={[styles.fieldContainer, { flex: 1 }]}>
                         <Text style={styles.fieldLabel}>{firstFeature.label}</Text>
                         <View style={styles.yesNoContainer}>

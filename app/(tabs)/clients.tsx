@@ -880,7 +880,7 @@ export default function ClientsScreen() {
                   const rows = [];
                   for (let i = 0; i < preferences.length; i += 2) {
                     rows.push(
-                      <View key={`pref-row-${i}-${preferences[i]?.key || 'unknown'}`} style={styles.row}>
+                      <View key={`pref-row-${i}-${preferences[i].key}-${preferences[i + 1]?.key || 'single'}`} style={styles.row}>
                         <View style={[styles.fieldContainer, { flex: 1 }]}>
                           <Text style={styles.fieldLabel}>{preferences[i].label}</Text>
                           <View style={styles.yesNoContainer}>
