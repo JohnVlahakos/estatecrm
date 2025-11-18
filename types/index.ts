@@ -157,6 +157,7 @@ export interface User {
   status: UserStatus;
   createdAt: string;
   avatarUrl?: string;
+  selectedPlanId?: string;
 }
 
 export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'cancelled';

@@ -92,9 +92,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const register = useCallback(async (
     email: string,
     password: string,
-    name: string
+    name: string,
+    selectedPlanId: string
   ): Promise<{ success: boolean; message: string }> => {
-    console.log('Registration attempt:', email);
+    console.log('Registration attempt:', email, 'Plan:', selectedPlanId);
 
     if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
       console.log('Email already exists');
@@ -109,6 +110,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       role: 'user',
       status: 'pending',
       createdAt: new Date().toISOString(),
+      selectedPlanId,
     };
 
     console.log('Creating new user:', newUser.name);

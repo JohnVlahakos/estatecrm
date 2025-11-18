@@ -1,7 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import Colors from '@/constants/colors';
 import { router, Stack } from 'expo-router';
-import { UserCheck, UserX, Clock, Mail, Calendar, Shield } from 'lucide-react-native';
+import { UserCheck, UserX, Clock, Mail, Calendar, Shield, CreditCard } from 'lucide-react-native';
 import React from 'react';
 import {
   View,
@@ -15,7 +16,10 @@ import type { User } from '@/types';
 
 export default function AdminUsersScreen() {
   const { getAllUsers, updateUserStatus, isAdmin } = useAuth();
+  const { subscribeToPlan, getAllPlans } = useSubscription();
   const [refreshKey, setRefreshKey] = React.useState(0);
+
+  const plans = getAllPlans();
 
   if (!isAdmin) {
     router.back();
@@ -25,9 +29,12 @@ export default function AdminUsersScreen() {
   const users = getAllUsers();
 
   const handleApprove = (user: User) => {
+    const selectedPlan = plans.find(p => p.id === user.selectedPlanId);
+    const planInfo = selectedPlan ? `\n\nSelected Plan: ${selectedPlan.name} (${selectedPlan.price.toFixed(2)})` : '';
+
     Alert.alert(
       'Approve User',
-      `Approve ${user.name} (${user.email})?`,
+      `Approve ${user.name} (${user.email})?${planInfo}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -35,9 +42,16 @@ export default function AdminUsersScreen() {
           onPress: async () => {
             console.log('Approving user:', user.id);
             await updateUserStatus(user.id, 'approved');
+
+            if (user.selectedPlanId) {
+              console.log('Subscribing user to plan:', user.selectedPlanId);
+              const result = await subscribeToPlan(user.id, user.selectedPlanId);
+              console.log('Subscription result:', result);
+            }
+
             setRefreshKey(prev => prev + 1);
             console.log('User approved successfully');
-            Alert.alert('Success', `${user.name} has been approved`);
+            Alert.alert('Success', `${user.name} has been approved and subscribed to their selected plan`);
           },
         },
       ]
@@ -114,6 +128,14 @@ export default function AdminUsersScreen() {
               Joined {new Date(item.createdAt).toLocaleDateString()}
             </Text>
           </View>
+          {item.selectedPlanId && (
+            <View style={styles.userDetail}>
+              <CreditCard size={14} color={Colors.primary} />
+              <Text style={styles.planText}>
+                {plans.find(p => p.id === item.selectedPlanId)?.name || 'Unknown Plan'}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
           {getStatusIcon(item.status)}
@@ -296,6 +318,11 @@ const styles = StyleSheet.create({
   userDate: {
     fontSize: 12,
     color: Colors.textLight,
+  },
+  planText: {
+    fontSize: 12,
+    color: Colors.primary,
+    fontWeight: '600' as const,
   },
   statusBadge: {
     flexDirection: 'row',

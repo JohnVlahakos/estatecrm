@@ -1,7 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import Colors from '@/constants/colors';
 import { router } from 'expo-router';
-import { UserPlus, Mail, Lock, User, ArrowLeft } from 'lucide-react-native';
+import { UserPlus, Mail, Lock, User, ArrowLeft, Check } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   View,
@@ -19,16 +20,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
   const { register } = useAuth();
+  const { getActivePlans } = useSubscription();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const activePlans = getActivePlans();
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (!selectedPlanId) {
+      Alert.alert('Error', 'Please select a subscription plan');
       return;
     }
 
@@ -43,7 +53,7 @@ export default function RegisterScreen() {
     }
 
     setIsSubmitting(true);
-    const result = await register(email.trim(), password, name.trim());
+    const result = await register(email.trim(), password, name.trim(), selectedPlanId);
     setIsSubmitting(false);
 
     if (result.success) {
@@ -137,6 +147,44 @@ export default function RegisterScreen() {
               autoComplete="password"
             />
           </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Choose Your Plan</Text>
+          </View>
+
+          {activePlans.map((plan) => (
+            <TouchableOpacity
+              key={plan.id}
+              style={[
+                styles.planCard,
+                selectedPlanId === plan.id && styles.planCardSelected,
+              ]}
+              onPress={() => setSelectedPlanId(plan.id)}
+            >
+              <View style={styles.planHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planName}>{plan.name}</Text>
+                  {selectedPlanId === plan.id && (
+                    <View style={styles.checkmark}>
+                      <Check size={16} color="#fff" />
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.planPrice}>
+                  ${plan.price.toFixed(2)}
+                  <Text style={styles.planDuration}> /{plan.duration} days</Text>
+                </Text>
+              </View>
+              <View style={styles.planFeatures}>
+                {plan.features.map((feature, index) => (
+                  <View key={index} style={styles.featureRow}>
+                    <Check size={14} color={Colors.success} />
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+            </TouchableOpacity>
+          ))}
 
           <TouchableOpacity
             style={[styles.button, isSubmitting && styles.buttonDisabled]}
@@ -270,5 +318,71 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  sectionHeader: {
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.text,
+  },
+  planCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  planCardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.card,
+  },
+  planHeader: {
+    marginBottom: 12,
+  },
+  planTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  planName: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+  },
+  checkmark: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  planPrice: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+  },
+  planDuration: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    color: Colors.textLight,
+  },
+  planFeatures: {
+    gap: 8,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  featureText: {
+    fontSize: 14,
+    color: Colors.text,
+    flex: 1,
   },
 });
