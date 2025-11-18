@@ -139,6 +139,7 @@ export default function SettingsScreen() {
             console.log('Logout button pressed');
             await logout();
             console.log('Logout completed, navigating to login');
+            router.replace('/login');
           },
         },
       ]
