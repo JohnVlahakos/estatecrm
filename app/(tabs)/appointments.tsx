@@ -702,14 +702,18 @@ export default function AppointmentsScreen() {
         animationType="fade"
         transparent={true}
         onRequestClose={() => setDatePickerVisible(false)}
+        statusBarTranslucent
       >
-        <View style={styles.pickerModalOverlay}>
+        <TouchableOpacity 
+          style={styles.pickerModalOverlay}
+          activeOpacity={1}
+          onPress={() => setDatePickerVisible(false)}
+        >
           <TouchableOpacity 
-            style={styles.pickerModalBackdrop}
+            style={styles.calendarModalContent}
             activeOpacity={1}
-            onPress={() => setDatePickerVisible(false)}
-          />
-          <View style={styles.calendarModalContent}>
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
               <TouchableOpacity onPress={() => setDatePickerVisible(false)}>
@@ -791,8 +795,8 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -800,14 +804,18 @@ export default function AppointmentsScreen() {
         animationType="fade"
         transparent={true}
         onRequestClose={() => setTimePickerVisible(false)}
+        statusBarTranslucent
       >
-        <View style={styles.pickerModalOverlay}>
+        <TouchableOpacity 
+          style={styles.pickerModalOverlay}
+          activeOpacity={1}
+          onPress={() => setTimePickerVisible(false)}
+        >
           <TouchableOpacity 
-            style={styles.pickerModalBackdrop}
+            style={styles.timeModalContent}
             activeOpacity={1}
-            onPress={() => setTimePickerVisible(false)}
-          />
-          <View style={styles.timeModalContent}>
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
               <TouchableOpacity onPress={() => setTimePickerVisible(false)}>
@@ -879,8 +887,8 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -1310,13 +1318,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-  },
-  pickerModalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   calendarModalContent: {
