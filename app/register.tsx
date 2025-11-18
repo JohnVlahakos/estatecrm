@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
   const { register } = useAuth();
-  const { getActivePlans } = useSubscription();
+  const { getActivePlans, isLoading: plansLoading } = useSubscription();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,6 +30,9 @@ export default function RegisterScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const activePlans = getActivePlans();
+  
+  console.log('Active plans available:', activePlans.length);
+  console.log('Plans loading:', plansLoading);
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -150,9 +153,20 @@ export default function RegisterScreen() {
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Choose Your Plan</Text>
+            <Text style={styles.sectionSubtitle}>{activePlans.length} plans available</Text>
           </View>
 
-          {activePlans.map((plan) => (
+          {plansLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingText}>Loading subscription plans...</Text>
+            </View>
+          ) : activePlans.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No subscription plans available. Please contact support.</Text>
+            </View>
+          ) : (
+            activePlans.map((plan) => (
             <TouchableOpacity
               key={plan.id}
               style={[
@@ -184,7 +198,8 @@ export default function RegisterScreen() {
                 ))}
               </View>
             </TouchableOpacity>
-          ))}
+          ))
+          )}
 
           <TouchableOpacity
             style={[styles.button, isSubmitting && styles.buttonDisabled]}
@@ -327,6 +342,31 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600' as const,
     color: Colors.text,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: Colors.textLight,
+    marginTop: 4,
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: Colors.textLight,
+  },
+  emptyContainer: {
+    padding: 24,
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center',
   },
   planCard: {
     backgroundColor: Colors.card,
