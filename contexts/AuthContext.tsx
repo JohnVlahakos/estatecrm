@@ -125,8 +125,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const updateUserStatus = useCallback(async (userId: string, status: UserStatus) => {
     console.log('Updating user status:', userId, status);
     const updatedUsers = users.map(u => u.id === userId ? { ...u, status } : u);
-    setUsers(updatedUsers);
-    await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
+    await saveUsers(updatedUsers);
 
     if (currentUser?.id === userId) {
       const updatedCurrentUser = { ...currentUser, status };
@@ -143,8 +142,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
       return u;
     });
-    setUsers(updatedUsers);
-    await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
+    await saveUsers(updatedUsers);
 
     if (currentUser?.id === userId) {
       const updatedCurrentUser = { ...currentUser, ...updates };
