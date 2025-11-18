@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
 } from 'react-native';
 import type { AppointmentType } from '@/types';
 
@@ -704,14 +705,12 @@ export default function AppointmentsScreen() {
         onRequestClose={() => setDatePickerVisible(false)}
         statusBarTranslucent
       >
-        <TouchableOpacity 
+        <Pressable 
           style={styles.pickerModalOverlay}
-          activeOpacity={1}
           onPress={() => setDatePickerVisible(false)}
         >
-          <TouchableOpacity 
+          <Pressable 
             style={styles.calendarModalContent}
-            activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.calendarHeader}>
@@ -795,8 +794,8 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       <Modal
@@ -806,14 +805,12 @@ export default function AppointmentsScreen() {
         onRequestClose={() => setTimePickerVisible(false)}
         statusBarTranslucent
       >
-        <TouchableOpacity 
+        <Pressable 
           style={styles.pickerModalOverlay}
-          activeOpacity={1}
           onPress={() => setTimePickerVisible(false)}
         >
-          <TouchableOpacity 
+          <Pressable 
             style={styles.timeModalContent}
-            activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.calendarHeader}>
@@ -887,8 +884,8 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
