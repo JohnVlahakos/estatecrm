@@ -1040,13 +1040,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContentWrapper: {
-    maxHeight: '90%',
+    height: '90%',
     backgroundColor: Colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   modalScrollView: {
-    flex: 1,
+    maxHeight: '100%',
   },
   modalContent: {
     backgroundColor: Colors.card,
