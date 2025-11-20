@@ -16,7 +16,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Pressable,
 } from 'react-native';
 import type { AppointmentType } from '@/types';
 
@@ -408,9 +407,9 @@ export default function AppointmentsScreen() {
               <View style={styles.typePicker}>
                 <Text style={styles.typePickerLabel}>Type</Text>
                 <View style={styles.typeChipsRow}>
-                  {(['viewing', 'meeting', 'call'] as AppointmentType[]).map((type) => (
+                  {(['viewing', 'meeting', 'call'] as AppointmentType[]).map((type, index) => (
                     <TouchableOpacity
-                      key={type}
+                      key={`type-${index}`}
                       style={[
                         styles.typeChipModal,
                         newAppointment.type === type && styles.typeChipModalSelected,
@@ -442,10 +441,9 @@ export default function AppointmentsScreen() {
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Date *</Text>
-                <Pressable
+                <TouchableOpacity
                   style={styles.searchableInput}
-                  onPress={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
                     console.log('Date picker button pressed');
                     if (newAppointment.date) {
                       setSelectedDate(new Date(newAppointment.date));
@@ -454,6 +452,7 @@ export default function AppointmentsScreen() {
                     }
                     setDatePickerVisible(true);
                   }}
+                  activeOpacity={0.7}
                 >
                   <CalendarIcon size={20} color={Colors.textSecondary} />
                   <Text style={[
@@ -470,15 +469,14 @@ export default function AppointmentsScreen() {
                         })
                       : 'Select date'}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Time *</Text>
-                <Pressable
+                <TouchableOpacity
                   style={styles.searchableInput}
-                  onPress={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
                     console.log('Time picker button pressed');
                     if (newAppointment.time) {
                       const [hour, minute] = newAppointment.time.split(':').map(Number);
@@ -490,6 +488,7 @@ export default function AppointmentsScreen() {
                     }
                     setTimePickerVisible(true);
                   }}
+                  activeOpacity={0.7}
                 >
                   <Clock size={20} color={Colors.textSecondary} />
                   <Text style={[
@@ -499,18 +498,18 @@ export default function AppointmentsScreen() {
                   ]}>
                     {newAppointment.time || 'Select time'}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Client *</Text>
-                <Pressable
+                <TouchableOpacity
                   style={styles.searchableInput}
-                  onPress={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
                     console.log('Client picker button pressed');
                     setClientSearchModalVisible(true);
                   }}
+                  activeOpacity={0.7}
                 >
                   <Text style={[
                     styles.searchableInputText,
@@ -521,18 +520,18 @@ export default function AppointmentsScreen() {
                       : 'Select a client'}
                   </Text>
                   <ChevronDown size={20} color={Colors.textSecondary} />
-                </Pressable>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Property (Optional)</Text>
-                <Pressable
+                <TouchableOpacity
                   style={styles.searchableInput}
-                  onPress={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
                     console.log('Property picker button pressed');
                     setPropertySearchModalVisible(true);
                   }}
+                  activeOpacity={0.7}
                 >
                   <Text style={[
                     styles.searchableInputText,
@@ -543,7 +542,7 @@ export default function AppointmentsScreen() {
                       : 'Select a property (optional)'}
                   </Text>
                   <ChevronDown size={20} color={Colors.textSecondary} />
-                </Pressable>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.pickerContainer}>
@@ -722,13 +721,14 @@ export default function AppointmentsScreen() {
         onRequestClose={() => setDatePickerVisible(false)}
         statusBarTranslucent
       >
-        <Pressable 
+        <TouchableOpacity 
           style={styles.pickerModalOverlay}
           onPress={() => setDatePickerVisible(false)}
+          activeOpacity={1}
         >
-          <Pressable 
+          <TouchableOpacity 
             style={styles.calendarModalContent}
-            onPress={(e) => e.stopPropagation()}
+            activeOpacity={1}
           >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
@@ -764,7 +764,7 @@ export default function AppointmentsScreen() {
                 const calendarKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
                 
                 for (let i = 0; i < firstDay; i++) {
-                  days.push(<View key={`empty-${calendarKey}-${i}`} style={styles.dayCell} />);
+                  days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
                 }
                 
                 for (let day = 1; day <= daysInMonth; day++) {
@@ -774,7 +774,7 @@ export default function AppointmentsScreen() {
                   
                   days.push(
                     <TouchableOpacity
-                      key={`day-${calendarKey}-${day}`}
+                      key={`day-${day}`}
                       style={[
                         styles.dayCell,
                         styles.dayButton,
@@ -812,8 +812,8 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
-        </Pressable>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -823,13 +823,14 @@ export default function AppointmentsScreen() {
         onRequestClose={() => setTimePickerVisible(false)}
         statusBarTranslucent
       >
-        <Pressable 
+        <TouchableOpacity 
           style={styles.pickerModalOverlay}
           onPress={() => setTimePickerVisible(false)}
+          activeOpacity={1}
         >
-          <Pressable 
+          <TouchableOpacity 
             style={styles.timeModalContent}
-            onPress={(e) => e.stopPropagation()}
+            activeOpacity={1}
           >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
@@ -902,8 +903,8 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
-        </Pressable>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
