@@ -761,7 +761,7 @@ export default function AppointmentsScreen() {
                 today.setHours(0, 0, 0, 0);
                 
                 for (let i = 0; i < firstDay; i++) {
-                  days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
+                  days.push(<View key={`empty-start-${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${i}`} style={styles.dayCell} />);
                 }
                 
                 for (let day = 1; day <= daysInMonth; day++) {
@@ -842,7 +842,7 @@ export default function AppointmentsScreen() {
                 <ScrollView style={styles.timeScrollView} showsVerticalScrollIndicator={false}>
                   {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
                     <TouchableOpacity
-                      key={hour}
+                      key={`hour-${hour}`}
                       style={[
                         styles.timeOption,
                         selectedHour === hour && styles.timeOptionSelected,
@@ -867,7 +867,7 @@ export default function AppointmentsScreen() {
                 <ScrollView style={styles.timeScrollView} showsVerticalScrollIndicator={false}>
                   {Array.from({ length: 12 }, (_, i) => i * 5).map((minute) => (
                     <TouchableOpacity
-                      key={minute}
+                      key={`minute-${minute}`}
                       style={[
                         styles.timeOption,
                         selectedMinute === minute && styles.timeOptionSelected,
