@@ -759,9 +759,10 @@ export default function AppointmentsScreen() {
                 const days = [];
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
+                const calendarKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
                 
                 for (let i = 0; i < firstDay; i++) {
-                  days.push(<View key={`empty-start-${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${i}`} style={styles.dayCell} />);
+                  days.push(<View key={`empty-${calendarKey}-${i}`} style={styles.dayCell} />);
                 }
                 
                 for (let day = 1; day <= daysInMonth; day++) {
@@ -771,7 +772,7 @@ export default function AppointmentsScreen() {
                   
                   days.push(
                     <TouchableOpacity
-                      key={`day-${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${day}`}
+                      key={`day-${calendarKey}-${day}`}
                       style={[
                         styles.dayCell,
                         styles.dayButton,
