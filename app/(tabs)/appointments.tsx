@@ -147,6 +147,30 @@ export default function AppointmentsScreen() {
         console.log('Added successfully');
       }
 
+      setModalVisible(false);
+      setTimeout(() => {
+        setNewAppointment({
+          title: '',
+          type: 'meeting',
+          clientId: '',
+          propertyId: '',
+          date: '',
+          time: '',
+          notes: '',
+          completed: false,
+        });
+        setEditingAppointment(null);
+      }, 300);
+    } catch (error) {
+      console.error('Error saving appointment:', error);
+      alert(`Failed to save appointment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setTimeout(() => {
+      setEditingAppointment(null);
       setNewAppointment({
         title: '',
         type: 'meeting',
@@ -157,33 +181,13 @@ export default function AppointmentsScreen() {
         notes: '',
         completed: false,
       });
-      setEditingAppointment(null);
-      setModalVisible(false);
-    } catch (error) {
-      console.error('Error saving appointment:', error);
-      alert(`Failed to save appointment: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
-    setEditingAppointment(null);
-    setNewAppointment({
-      title: '',
-      type: 'meeting',
-      clientId: '',
-      propertyId: '',
-      date: '',
-      time: '',
-      notes: '',
-      completed: false,
-    });
-    setClientSearchQuery('');
-    setPropertySearchQuery('');
-    setDatePickerVisible(false);
-    setTimePickerVisible(false);
-    setClientSearchModalVisible(false);
-    setPropertySearchModalVisible(false);
+      setClientSearchQuery('');
+      setPropertySearchQuery('');
+      setDatePickerVisible(false);
+      setTimePickerVisible(false);
+      setClientSearchModalVisible(false);
+      setPropertySearchModalVisible(false);
+    }, 300);
   };
 
   const handleDeleteAppointment = async () => {
@@ -241,8 +245,7 @@ export default function AppointmentsScreen() {
   };
 
   const handleDateSelect = (day: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(day);
+    const newDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day);
     setSelectedDate(newDate);
   };
 
@@ -439,10 +442,10 @@ export default function AppointmentsScreen() {
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Date *</Text>
-                <TouchableOpacity
+                <Pressable
                   style={styles.searchableInput}
-                  activeOpacity={0.7}
-                  onPress={() => {
+                  onPress={(e) => {
+                    e.stopPropagation();
                     console.log('Date picker button pressed');
                     if (newAppointment.date) {
                       setSelectedDate(new Date(newAppointment.date));
@@ -467,15 +470,15 @@ export default function AppointmentsScreen() {
                         })
                       : 'Select date'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Time *</Text>
-                <TouchableOpacity
+                <Pressable
                   style={styles.searchableInput}
-                  activeOpacity={0.7}
-                  onPress={() => {
+                  onPress={(e) => {
+                    e.stopPropagation();
                     console.log('Time picker button pressed');
                     if (newAppointment.time) {
                       const [hour, minute] = newAppointment.time.split(':').map(Number);
@@ -496,15 +499,15 @@ export default function AppointmentsScreen() {
                   ]}>
                     {newAppointment.time || 'Select time'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Client *</Text>
-                <TouchableOpacity
+                <Pressable
                   style={styles.searchableInput}
-                  activeOpacity={0.7}
-                  onPress={() => {
+                  onPress={(e) => {
+                    e.stopPropagation();
                     console.log('Client picker button pressed');
                     setClientSearchModalVisible(true);
                   }}
@@ -518,15 +521,15 @@ export default function AppointmentsScreen() {
                       : 'Select a client'}
                   </Text>
                   <ChevronDown size={20} color={Colors.textSecondary} />
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               <View style={styles.pickerContainer}>
                 <Text style={styles.pickerLabel}>Property (Optional)</Text>
-                <TouchableOpacity
+                <Pressable
                   style={styles.searchableInput}
-                  activeOpacity={0.7}
-                  onPress={() => {
+                  onPress={(e) => {
+                    e.stopPropagation();
                     console.log('Property picker button pressed');
                     setPropertySearchModalVisible(true);
                   }}
@@ -540,7 +543,7 @@ export default function AppointmentsScreen() {
                       : 'Select a property (optional)'}
                   </Text>
                   <ChevronDown size={20} color={Colors.textSecondary} />
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               <View style={styles.pickerContainer}>
@@ -722,10 +725,10 @@ export default function AppointmentsScreen() {
         <Pressable 
           style={styles.pickerModalOverlay}
           onPress={() => setDatePickerVisible(false)}
-          accessible={true}
         >
-          <View 
+          <Pressable 
             style={styles.calendarModalContent}
+            onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
@@ -747,8 +750,8 @@ export default function AppointmentsScreen() {
             </View>
 
             <View style={styles.weekDaysRow}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
-                <Text key={`weekday-${idx}`} style={styles.weekDayText}>{day}</Text>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <Text key={day} style={styles.weekDayText}>{day}</Text>
               ))}
             </View>
 
@@ -809,7 +812,7 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
 
@@ -823,10 +826,10 @@ export default function AppointmentsScreen() {
         <Pressable 
           style={styles.pickerModalOverlay}
           onPress={() => setTimePickerVisible(false)}
-          accessible={true}
         >
-          <View 
+          <Pressable 
             style={styles.timeModalContent}
+            onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
@@ -899,7 +902,7 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
