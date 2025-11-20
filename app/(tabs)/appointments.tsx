@@ -718,15 +718,14 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setDatePickerVisible(false)}
         statusBarTranslucent
-        presentationStyle="overFullScreen"
       >
         <Pressable 
           style={styles.pickerModalOverlay}
           onPress={() => setDatePickerVisible(false)}
+          accessible={true}
         >
-          <Pressable 
+          <View 
             style={styles.calendarModalContent}
-            onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Date</Text>
@@ -810,7 +809,7 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
+          </View>
         </Pressable>
       </Modal>
 
@@ -820,15 +819,14 @@ export default function AppointmentsScreen() {
         transparent={true}
         onRequestClose={() => setTimePickerVisible(false)}
         statusBarTranslucent
-        presentationStyle="overFullScreen"
       >
         <Pressable 
           style={styles.pickerModalOverlay}
           onPress={() => setTimePickerVisible(false)}
+          accessible={true}
         >
-          <Pressable 
+          <View 
             style={styles.timeModalContent}
-            onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.calendarHeader}>
               <Text style={styles.calendarTitle}>Select Time</Text>
@@ -901,7 +899,7 @@ export default function AppointmentsScreen() {
                 <Text style={styles.submitButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
+          </View>
         </Pressable>
       </Modal>
     </View>
