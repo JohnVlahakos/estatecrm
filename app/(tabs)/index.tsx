@@ -39,13 +39,13 @@ export default function DashboardScreen() {
   const recentActivities = useMemo(() => {
     const activities = [
       ...clients.slice(0, 3).map(c => ({
-        id: c.id,
+        id: `client-${c.id}`,
         type: 'client' as const,
         title: `New client: ${c.name}`,
         date: c.createdAt,
       })),
       ...properties.slice(0, 3).map(p => ({
-        id: p.id,
+        id: `property-${p.id}`,
         type: 'property' as const,
         title: `New property: ${p.title}`,
         date: p.createdAt,
