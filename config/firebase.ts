@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, browserLocalPersistence, indexedDBLocalPersistence } from "firebase/auth";
+import { getAuth, initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, type Auth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { Platform } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB51S6n2SRAbIHLD9eU_otL3giXaWDDlms",
@@ -15,9 +16,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
-
+let auth: Auth;
 if (Platform.OS === 'web') {
+  auth = getAuth(app);
   auth.setPersistence(indexedDBLocalPersistence).catch((error: any) => {
     console.log('Error setting persistence:', error);
     auth.setPersistence(browserLocalPersistence).catch((err: any) => {
@@ -25,26 +26,24 @@ if (Platform.OS === 'web') {
     });
   });
 } else {
-  import('@react-native-async-storage/async-storage').then((AsyncStorageModule) => {
-    const AsyncStorage = AsyncStorageModule.default;
-    
-    const asyncStoragePersistence = {
-      async getItem(key: string): Promise<string | null> {
-        return AsyncStorage.getItem(key);
+  auth = initializeAuth(app, {
+    persistence: {
+      type: 'LOCAL',
+      async get(key: string) {
+        const value = await AsyncStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
       },
-      async setItem(key: string, value: string): Promise<void> {
-        return AsyncStorage.setItem(key, value);
+      async set(key: string, value: any) {
+        await AsyncStorage.setItem(key, JSON.stringify(value));
       },
-      async removeItem(key: string): Promise<void> {
-        return AsyncStorage.removeItem(key);
+      async remove(key: string) {
+        await AsyncStorage.removeItem(key);
       },
-    };
-    
-    auth.setPersistence(asyncStoragePersistence as any).catch((error: any) => {
-      console.log('Error setting AsyncStorage persistence:', error);
-    });
+    } as any,
   });
 }
+
+export { auth };
 
 export const db = getFirestore(app);
 
