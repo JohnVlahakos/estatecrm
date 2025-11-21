@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CRMProvider } from "@/contexts/CRMContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
@@ -19,7 +19,6 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const navigationAttempted = useRef(false);
 
   useEffect(() => {
     if (isLoading) {
@@ -42,31 +41,18 @@ function RootLayoutNav() {
 
     if (!isAuthenticated && inAuthGroup) {
       console.log('Not authenticated in protected route, redirecting to login...');
-      navigationAttempted.current = false;
-      router.replace('/login');
+      setTimeout(() => router.replace('/login'), 0);
     } else if (isAuthenticated && isLoginOrRegister) {
-      console.log('Authenticated on login/register page, checking redirect...');
-      if (!navigationAttempted.current) {
-        console.log('Redirecting to tabs...');
-        navigationAttempted.current = true;
-        router.replace('/(tabs)');
-      } else {
-        console.log('Navigation already attempted, skipping...');
-      }
+      console.log('Authenticated on login/register page, redirecting to dashboard...');
+      setTimeout(() => router.replace('/(tabs)'), 0);
     } else if (isAuthenticated && !currentSegment) {
       console.log('Authenticated at root, redirecting to tabs...');
-      router.replace('/(tabs)');
+      setTimeout(() => router.replace('/(tabs)'), 0);
     } else if (!isAuthenticated && !currentSegment) {
       console.log('Not authenticated at root, redirecting to login...');
-      router.replace('/login');
+      setTimeout(() => router.replace('/login'), 0);
     }
   }, [isAuthenticated, isLoading, segments, router]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigationAttempted.current = false;
-    }
-  }, [isAuthenticated]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
