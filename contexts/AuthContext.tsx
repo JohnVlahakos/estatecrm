@@ -56,9 +56,27 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
       if (!userDoc.exists()) {
+        console.log('User doc not found, checking if admin...');
+        
+        if (email === 'admin@crm.com') {
+          console.log('Creating admin user document...');
+          const adminData: Omit<User, 'id'> = {
+            email: 'admin@crm.com',
+            password: '',
+            name: 'Admin',
+            role: 'admin',
+            status: 'approved',
+            createdAt: new Date().toISOString(),
+            selectedPlanId: 'free',
+          };
+          await setDoc(doc(db, 'users', fbUser.uid), adminData);
+          console.log('Admin user document created');
+          return { success: true, message: 'Login successful' };
+        }
+        
         console.log('User doc not found');
         await firebaseSignOut(auth);
-        return { success: false, message: 'User data not found' };
+        return { success: false, message: 'User data not found. Please contact admin.' };
       }
 
       const userData = userDoc.data() as Omit<User, 'id'>;
