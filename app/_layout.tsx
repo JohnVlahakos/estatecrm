@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CRMProvider } from "@/contexts/CRMContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
@@ -19,8 +19,9 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const navigationAttempted = useRef(false);
 
-  const handleNavigation = useCallback(() => {
+  useEffect(() => {
     if (isLoading) {
       console.log('Still loading auth state...');
       return;
@@ -42,18 +43,18 @@ function RootLayoutNav() {
     if (!isAuthenticated && inAuthGroup) {
       console.log('Not authenticated in protected route, redirecting to login...');
       router.replace('/login');
-    } else if (isAuthenticated && isLoginOrRegister) {
+      navigationAttempted.current = false;
+    } else if (isAuthenticated && isLoginOrRegister && !navigationAttempted.current) {
       console.log('Authenticated on login/register page, redirecting to tabs...');
-      router.replace('/(tabs)');
+      navigationAttempted.current = true;
+      setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 50);
     } else if (isAuthenticated && !currentSegment) {
       console.log('Authenticated at root, redirecting to tabs...');
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, segments, router]);
-
-  useEffect(() => {
-    handleNavigation();
-  }, [handleNavigation]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
