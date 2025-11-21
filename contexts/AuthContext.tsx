@@ -1,7 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User, UserStatus } from '@/types';
-import { auth, db } from '@/config/firebase';
+import { auth, db, app } from '@/config/firebase';
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -74,14 +74,34 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
       console.log('🔐 Login attempt started:', email);
+      console.log('🌐 Checking network connectivity...');
+      console.log('🔥 Firebase auth instance:', auth ? 'initialized' : 'not initialized');
+      console.log('🔥 Firebase app:', app ? app.name : 'not initialized');
       
       let userCredential;
       try {
         console.log('🔑 Attempting Firebase sign in...');
+        console.log('📧 Email:', email);
+        console.log('🔒 Password length:', password.length);
+        
         userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log('✅ Firebase sign in successful:', userCredential.user.email);
       } catch (authError: any) {
-        console.log('❌ Firebase sign in failed:', authError.code);
+        console.log('❌ Firebase sign in failed:', authError.code, authError.message);
+        console.error('Full error object:', JSON.stringify(authError, null, 2));
+        
+        if (authError.code === 'auth/network-request-failed') {
+          console.error('❌ Network request failed - possible causes:');
+          console.error('   1. No internet connection');
+          console.error('   2. Firebase project configuration issue');
+          console.error('   3. CORS/network blocking');
+          console.error('   4. Invalid Firebase credentials in config');
+          return { 
+            success: false, 
+            message: 'Network error: Unable to connect to authentication service. Please check your internet connection.' 
+          };
+        }
+        
         if ((authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found') && 
             email === 'admin@crm.com' && password === 'admin123') {
           console.log('👤 Admin user not found, creating...');
@@ -105,6 +125,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             return { success: true, message: 'Login successful' };
           } catch (createError: any) {
             console.error('Failed to create admin user:', createError);
+            if (createError.code === 'auth/network-request-failed') {
+              return { 
+                success: false, 
+                message: 'Network error: Unable to connect. Please check your internet connection.' 
+              };
+            }
             throw authError;
           }
         }
@@ -164,6 +190,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       return { success: true, message: 'Login successful' };
     } catch (error: any) {
       console.error('❌ Login error:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
+      
+      if (error.code === 'auth/network-request-failed') {
+        return { 
+          success: false, 
+          message: 'Network error: Cannot connect to server. Check your internet connection and try again.' 
+        };
+      }
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         return { success: false, message: 'Invalid email or password' };
       }

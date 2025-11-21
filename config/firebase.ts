@@ -13,22 +13,32 @@ const firebaseConfig = {
   measurementId: "G-YD2J08HSMX"
 };
 
+console.log('🔥 Firebase initialization starting...');
+console.log('📍 Platform:', Platform.OS);
+
 const app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
+console.log('✅ Firebase app initialized');
 
 const auth: Auth = getAuth(app);
+console.log('✅ Firebase auth initialized');
 
 if (Platform.OS === 'web') {
   (async () => {
-    const { indexedDBLocalPersistence, browserLocalPersistence } = await import('firebase/auth');
-    auth.setPersistence(indexedDBLocalPersistence).catch((error: any) => {
-      console.log('Error setting persistence:', error);
-      auth.setPersistence(browserLocalPersistence).catch((err: any) => {
-        console.log('Fallback persistence error:', err);
+    try {
+      const { indexedDBLocalPersistence, browserLocalPersistence } = await import('firebase/auth');
+      await auth.setPersistence(indexedDBLocalPersistence).catch(() => {
+        console.log('⚠️ Falling back to browserLocalPersistence');
+        return auth.setPersistence(browserLocalPersistence);
       });
-    });
+      console.log('✅ Web persistence configured');
+    } catch (error: any) {
+      console.log('⚠️ Persistence configuration warning:', error.message);
+    }
   })();
 }
 
-export { auth };
-export const db = getFirestore(app);
-export { app };
+const db = getFirestore(app);
+console.log('✅ Firestore initialized');
+console.log('🚀 Firebase ready!');
+
+export { auth, db, app };
