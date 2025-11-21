@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CRMProvider } from "@/contexts/CRMContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
@@ -20,7 +20,7 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  useEffect(() => {
+  const handleNavigation = useCallback(() => {
     if (isLoading) {
       console.log('Still loading auth state...');
       return;
@@ -35,7 +35,8 @@ function RootLayoutNav() {
       isLoading, 
       currentSegment, 
       inAuthGroup, 
-      isLoginOrRegister 
+      isLoginOrRegister,
+      segments: segments.join('/') 
     });
 
     if (!isAuthenticated && inAuthGroup) {
@@ -48,7 +49,11 @@ function RootLayoutNav() {
       console.log('Authenticated at root, redirecting to tabs...');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, segments, isLoading, router]);
+  }, [isAuthenticated, isLoading, segments, router]);
+
+  useEffect(() => {
+    handleNavigation();
+  }, [handleNavigation]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
