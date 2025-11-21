@@ -46,10 +46,14 @@ export default function LoginScreen() {
 
     if (result.success) {
       console.log('✅ Login successful!');
-      console.log('🚀 Auth state should change and navigation guard will handle redirect');
-      console.log('⚠️ NOT manually redirecting - letting navigation guard handle it');
+      console.log('🚀 Manually redirecting to dashboard');
       console.log('=== LOGIN FLOW END (SUCCESS) ===\n');
-      Alert.alert('Debug', 'Login successful! Waiting for redirect...');
+      
+      // Give a small delay to let auth state update, then redirect
+      setTimeout(() => {
+        console.log('⏰ Timeout fired, redirecting now!');
+        router.replace('/(tabs)');
+      }, 100);
     } else {
       console.log('❌ Login failed:', result.message);
       console.log('=== LOGIN FLOW END (FAILED) ===\n');
