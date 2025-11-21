@@ -36,6 +36,9 @@ export default function LoginScreen() {
 
     if (!result.success) {
       Alert.alert('Login Failed', result.message);
+    } else {
+      console.log('Login successful, navigating to tabs...');
+      router.replace('/(tabs)');
     }
   };
 

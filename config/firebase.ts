@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { Platform } from "react-native";
 
@@ -16,10 +16,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+
+if (Platform.OS === 'web') {
+  auth.setPersistence(indexedDBLocalPersistence).catch((error) => {
+    console.log('Error setting persistence:', error);
+    auth.setPersistence(browserLocalPersistence).catch((err) => {
+      console.log('Fallback persistence error:', err);
+    });
+  });
+} else {
+  auth.setPersistence(inMemoryPersistence).catch((error) => {
+    console.log('Error setting in-memory persistence:', error);
+  });
+}
+
 export const db = getFirestore(app);
 
 if (Platform.OS === 'web') {
-  // Analytics is only available on web
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { getAnalytics } = require("firebase/analytics");
   getAnalytics(app);
