@@ -30,19 +30,26 @@ export default function LoginScreen() {
       return;
     }
 
+    console.log('\n=== LOGIN FLOW START ===');
     console.log('📲 Login button pressed');
+    console.log('📧 Email:', email.trim());
+    console.log('🔑 Password length:', password.length);
     setIsSubmitting(true);
+    
     console.log('⏳ Calling login function...');
     const result = await login(email.trim(), password);
-    console.log('📋 Login result:', result);
+    console.log('📋 Login result:', JSON.stringify(result));
+    
     setIsSubmitting(false);
 
     if (result.success) {
       console.log('✅ Login successful!');
       console.log('🚀 Auth state should change and navigation guard will handle redirect');
       console.log('⚠️ NOT manually redirecting - letting navigation guard handle it');
+      console.log('=== LOGIN FLOW END (SUCCESS) ===\n');
     } else {
       console.log('❌ Login failed:', result.message);
+      console.log('=== LOGIN FLOW END (FAILED) ===\n');
       Alert.alert('Login Failed', result.message);
     }
   };

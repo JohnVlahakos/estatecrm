@@ -31,6 +31,7 @@ function RootLayoutNav() {
       userRole: currentUser?.role
     });
     console.log('📍 Current segments:', segments);
+    console.log('📍 Full segments array:', JSON.stringify(segments));
     
     if (isLoading) {
       console.log('⏳ Still loading auth state, waiting...');
@@ -49,7 +50,8 @@ function RootLayoutNav() {
       inAuthGroup, 
       isLoginOrRegister,
       segments: segments.join('/'),
-      allSegments: segments
+      allSegments: segments,
+      segmentsLength: segments.length
     });
 
     if (!isAuthenticated && inAuthGroup) {
@@ -58,11 +60,16 @@ function RootLayoutNav() {
       router.replace('/login');
     } else if (isAuthenticated && isLoginOrRegister) {
       console.log('✅ Authenticated on login/register page, redirecting to dashboard...');
+      console.log('🔍 Auth check details:', {
+        isAuthenticatedValue: isAuthenticated,
+        currentUserExists: !!currentUser,
+        currentUserStatus: currentUser?.status,
+        isLoginOrRegisterValue: isLoginOrRegister,
+        currentSegmentValue: currentSegment
+      });
       console.log('===== End =====\n');
-      setTimeout(() => {
-        console.log('🚀 Executing redirect to /(tabs)...');
-        router.replace('/(tabs)');
-      }, 100);
+      console.log('🚀 Executing redirect to /(tabs)...');
+      router.replace('/(tabs)');
     } else if (isAuthenticated && !currentSegment) {
       console.log('✅ Authenticated at root, redirecting to tabs...');
       console.log('===== End =====\n');

@@ -305,12 +305,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const authValue = useMemo(() => {
     const isAuthenticated = currentUser !== null && currentUser.status === 'approved';
-    console.log('🔐 Auth value computed:', {
-      hasUser: !!currentUser,
-      userStatus: currentUser?.status,
+    console.log('\n🔐 === Auth value computed ===');
+    console.log('📄 Current user:', {
+      exists: !!currentUser,
+      name: currentUser?.name,
+      email: currentUser?.email,
+      status: currentUser?.status,
+      role: currentUser?.role
+    });
+    console.log('🔑 Computed values:', {
       isAuthenticated,
+      isAdmin: currentUser?.role === 'admin',
       isLoading
     });
+    console.log('=== End auth value ===\n');
     return {
       currentUser,
       isLoading,
