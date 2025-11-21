@@ -30,14 +30,19 @@ export default function LoginScreen() {
       return;
     }
 
+    console.log('📲 Login button pressed');
     setIsSubmitting(true);
+    console.log('⏳ Calling login function...');
     const result = await login(email.trim(), password);
+    console.log('📋 Login result:', result);
     setIsSubmitting(false);
 
     if (result.success) {
-      console.log('Login successful, redirecting to dashboard...');
-      router.replace('/(tabs)');
+      console.log('✅ Login successful!');
+      console.log('🚀 Auth state should change and navigation guard will handle redirect');
+      console.log('⚠️ NOT manually redirecting - letting navigation guard handle it');
     } else {
+      console.log('❌ Login failed:', result.message);
       Alert.alert('Login Failed', result.message);
     }
   };

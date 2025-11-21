@@ -16,13 +16,17 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, currentUser } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
+    console.log('🔄 RootLayoutNav useEffect triggered');
+    console.log('📊 Auth State:', { isAuthenticated, isLoading, hasUser: !!currentUser, userEmail: currentUser?.email });
+    console.log('📍 Current segments:', segments);
+    
     if (isLoading) {
-      console.log('Still loading auth state...');
+      console.log('⏳ Still loading auth state, waiting...');
       return;
     }
 
@@ -30,29 +34,32 @@ function RootLayoutNav() {
     const inAuthGroup = currentSegment === '(tabs)' || currentSegment === 'admin-users' || currentSegment === 'admin-subscriptions' || currentSegment === 'subscription' || currentSegment === 'admin-cities';
     const isLoginOrRegister = currentSegment === 'login' || currentSegment === 'register';
 
-    console.log('Navigation guard check:', { 
+    console.log('🛣️  Navigation guard check:', { 
       isAuthenticated, 
       isLoading, 
       currentSegment, 
       inAuthGroup, 
       isLoginOrRegister,
-      segments: segments.join('/') 
+      segments: segments.join('/'),
+      allSegments: segments
     });
 
     if (!isAuthenticated && inAuthGroup) {
-      console.log('Not authenticated in protected route, redirecting to login...');
-      setTimeout(() => router.replace('/login'), 0);
+      console.log('❌ Not authenticated in protected route, redirecting to login...');
+      router.replace('/login');
     } else if (isAuthenticated && isLoginOrRegister) {
-      console.log('Authenticated on login/register page, redirecting to dashboard...');
-      setTimeout(() => router.replace('/(tabs)'), 0);
+      console.log('✅ Authenticated on login/register page, redirecting to dashboard...');
+      router.replace('/(tabs)');
     } else if (isAuthenticated && !currentSegment) {
-      console.log('Authenticated at root, redirecting to tabs...');
-      setTimeout(() => router.replace('/(tabs)'), 0);
+      console.log('✅ Authenticated at root, redirecting to tabs...');
+      router.replace('/(tabs)');
     } else if (!isAuthenticated && !currentSegment) {
-      console.log('Not authenticated at root, redirecting to login...');
-      setTimeout(() => router.replace('/login'), 0);
+      console.log('❌ Not authenticated at root, redirecting to login...');
+      router.replace('/login');
+    } else {
+      console.log('✔️  No navigation needed, user is in correct place');
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+  }, [isAuthenticated, isLoading, segments, router, currentUser]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>

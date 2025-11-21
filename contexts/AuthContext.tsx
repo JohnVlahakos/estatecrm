@@ -18,47 +18,69 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔥 Setting up Firebase auth state listener');
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      console.log('Firebase auth state changed:', fbUser?.email);
+      console.log('🔥 Firebase auth state changed:', { 
+        email: fbUser?.email, 
+        uid: fbUser?.uid,
+        hasUser: !!fbUser 
+      });
       
       if (fbUser) {
         try {
+          console.log('📥 Fetching user data from Firestore...');
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+          
           if (userDoc.exists()) {
             const userData = userDoc.data() as Omit<User, 'id'>;
-            setCurrentUser({ id: fbUser.uid, ...userData });
-            console.log('User loaded from Firestore:', userData.name);
+            const user = { id: fbUser.uid, ...userData };
+            console.log('✅ User loaded from Firestore:', {
+              name: userData.name,
+              email: userData.email,
+              role: userData.role,
+              status: userData.status
+            });
+            setCurrentUser(user);
+            console.log('✅ currentUser state updated');
           } else {
-            console.log('User doc not found in Firestore');
+            console.log('❌ User doc not found in Firestore for uid:', fbUser.uid);
             setCurrentUser(null);
           }
         } catch (error) {
-          console.error('Error loading user data:', error);
+          console.error('❌ Error loading user data:', error);
           setCurrentUser(null);
         }
       } else {
+        console.log('🚪 No Firebase user, setting currentUser to null');
         setCurrentUser(null);
       }
       
+      console.log('⏳ Setting isLoading to false');
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('🧹 Cleaning up Firebase auth listener');
+      unsubscribe();
+    };
   }, []);
 
 
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
-      console.log('Login attempt:', email);
+      console.log('🔐 Login attempt started:', email);
       
       let userCredential;
       try {
+        console.log('🔑 Attempting Firebase sign in...');
         userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log('✅ Firebase sign in successful:', userCredential.user.email);
       } catch (authError: any) {
+        console.log('❌ Firebase sign in failed:', authError.code);
         if ((authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found') && 
             email === 'admin@crm.com' && password === 'admin123') {
-          console.log('Admin user not found, creating...');
+          console.log('👤 Admin user not found, creating...');
           try {
             userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const fbUser = userCredential.user;
@@ -74,7 +96,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             };
             
             await setDoc(doc(db, 'users', fbUser.uid), adminData);
-            console.log('Admin user created successfully');
+            console.log('✅ Admin user created successfully');
+            console.log('✅ Login flow complete - auth state listener will trigger');
             return { success: true, message: 'Login successful' };
           } catch (createError: any) {
             console.error('Failed to create admin user:', createError);
@@ -86,12 +109,13 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       
       const fbUser = userCredential.user;
       
+      console.log('📄 Checking user document in Firestore...');
       const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
       if (!userDoc.exists()) {
-        console.log('User doc not found, checking if admin...');
+        console.log('❌ User doc not found, checking if admin...');
         
         if (email === 'admin@crm.com') {
-          console.log('Creating admin user document...');
+          console.log('👤 Creating admin user document...');
           const adminData: Omit<User, 'id'> = {
             email: 'admin@crm.com',
             password: '',
@@ -102,33 +126,40 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             selectedPlanId: 'free',
           };
           await setDoc(doc(db, 'users', fbUser.uid), adminData);
-          console.log('Admin user document created');
+          console.log('✅ Admin user document created');
+          console.log('✅ Login flow complete - auth state listener will trigger');
           return { success: true, message: 'Login successful' };
         }
         
-        console.log('User doc not found');
+        console.log('❌ User doc not found');
         await firebaseSignOut(auth);
         return { success: false, message: 'User data not found. Please contact admin.' };
       }
 
       const userData = userDoc.data() as Omit<User, 'id'>;
+      console.log('👤 User data retrieved:', {
+        name: userData.name,
+        status: userData.status,
+        role: userData.role
+      });
       
       if (userData.status === 'pending') {
-        console.log('User pending approval');
+        console.log('⏳ User pending approval');
         await firebaseSignOut(auth);
         return { success: false, message: 'Your account is pending approval by an administrator' };
       }
 
       if (userData.status === 'rejected') {
-        console.log('User rejected');
+        console.log('❌ User rejected');
         await firebaseSignOut(auth);
         return { success: false, message: 'Your account has been rejected' };
       }
 
-      console.log('Login successful:', userData.name);
+      console.log('✅ Login successful:', userData.name);
+      console.log('✅ Login flow complete - auth state listener will trigger');
       return { success: true, message: 'Login successful' };
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         return { success: false, message: 'Invalid email or password' };
       }
