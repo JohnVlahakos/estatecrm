@@ -35,7 +35,6 @@ export default function LoginScreen() {
     console.log('📧 Email:', email.trim());
     console.log('🔑 Password length:', password.length);
     
-    Alert.alert('Debug', `Starting login for ${email}`);
     setIsSubmitting(true);
     
     console.log('⏳ Calling login function...');
@@ -46,14 +45,8 @@ export default function LoginScreen() {
 
     if (result.success) {
       console.log('✅ Login successful!');
-      console.log('🚀 Manually redirecting to dashboard');
+      console.log('🚀 Auth state will trigger navigation');
       console.log('=== LOGIN FLOW END (SUCCESS) ===\n');
-      
-      // Give a small delay to let auth state update, then redirect
-      setTimeout(() => {
-        console.log('⏰ Timeout fired, redirecting now!');
-        router.replace('/(tabs)');
-      }, 100);
     } else {
       console.log('❌ Login failed:', result.message);
       console.log('=== LOGIN FLOW END (FAILED) ===\n');

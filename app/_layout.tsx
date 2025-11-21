@@ -52,9 +52,15 @@ function RootLayoutNav() {
 
     if (isAuthenticated) {
       if (isLoginOrRegister || !currentSegment) {
-        console.log('✅ User authenticated, redirecting to dashboard...');
+        console.log('✅ ✅ ✅ User authenticated, REDIRECTING TO DASHBOARD NOW...');
+        console.log('🚀 Calling router.replace("/(tabs)")');
+        try {
+          router.replace('/(tabs)');
+          console.log('✅ router.replace called successfully');
+        } catch (error) {
+          console.error('❌ router.replace failed:', error);
+        }
         console.log('===== End =====\n');
-        router.replace('/(tabs)');
         return;
       }
       console.log('✔️  User authenticated and already in app');
