@@ -47,6 +47,18 @@ export default function AppointmentsScreen() {
   const [selectedMinute, setSelectedMinute] = useState<number>(0);
   const [isAtBottom, setIsAtBottom] = useState(false);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const count = appointments.filter(a => {
+        const apptDate = new Date(a.date);
+        return apptDate >= now && !a.completed;
+      }).length;
+      clearAppointmentsBadge(count);
+    }, [clearAppointmentsBadge, appointments])
+  );
+
   const groupedAppointments = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -70,21 +82,6 @@ export default function AppointmentsScreen() {
 
     return { todayAppts, upcomingAppts, pastAppts };
   }, [appointments]);
-
-  const upcomingAppointmentsCount = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    return appointments.filter(a => {
-      const apptDate = new Date(a.date);
-      return apptDate >= now && !a.completed;
-    }).length;
-  }, [appointments]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      clearAppointmentsBadge(upcomingAppointmentsCount);
-    }, [clearAppointmentsBadge, upcomingAppointmentsCount])
-  );
 
   const handleOpenEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
@@ -338,8 +335,10 @@ export default function AppointmentsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
       </View>
     );
   }
