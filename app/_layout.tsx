@@ -43,6 +43,9 @@ function RootLayoutNav() {
     } else if (isAuthenticated && isLoginOrRegister) {
       console.log('Authenticated on auth page, redirecting to tabs...');
       router.replace('/(tabs)');
+    } else if (isAuthenticated && !segments[0]) {
+      console.log('Authenticated but no route, redirecting to tabs...');
+      router.replace('/(tabs)');
     }
   }, [isAuthenticated, segments, isLoading, router]);
 
