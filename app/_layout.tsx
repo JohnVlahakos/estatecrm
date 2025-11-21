@@ -53,16 +53,14 @@ function RootLayoutNav() {
     if (isAuthenticated) {
       console.log('✅ User is authenticated');
       if (isLoginOrRegister || !currentSegment) {
-        console.log('🚀🚀🚀 IMMEDIATE REDIRECT TO DASHBOARD');
-        setTimeout(() => {
-          try {
-            console.log('🚀 Executing router.replace("/(tabs)")');
-            router.replace('/(tabs)');
-            console.log('✅ router.replace("/(tabs)") called');
-          } catch (error) {
-            console.error('❌ router.replace failed:', error);
-          }
-        }, 100);
+        console.log('🚀🚀🚀 REDIRECTING TO DASHBOARD');
+        try {
+          console.log('🚀 Executing router.replace("/(tabs)")');
+          router.replace('/(tabs)');
+          console.log('✅ router.replace("/(tabs)") executed');
+        } catch (error) {
+          console.error('❌ router.replace failed:', error);
+        }
         console.log('===== End =====\n');
         return;
       }
@@ -72,7 +70,12 @@ function RootLayoutNav() {
       console.log('❌ User is NOT authenticated');
       if (inAuthGroup || !currentSegment) {
         console.log('🔙 Redirecting to login...');
-        setTimeout(() => router.replace('/login'), 100);
+        try {
+          router.replace('/login');
+          console.log('✅ Redirected to login');
+        } catch (error) {
+          console.error('❌ Login redirect failed:', error);
+        }
         console.log('===== End =====\n');
         return;
       }
