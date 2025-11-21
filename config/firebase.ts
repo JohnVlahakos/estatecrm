@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from "firebase/auth";
+import { getAuth, browserLocalPersistence, indexedDBLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { Platform } from "react-native";
 
@@ -18,15 +18,31 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 if (Platform.OS === 'web') {
-  auth.setPersistence(indexedDBLocalPersistence).catch((error) => {
+  auth.setPersistence(indexedDBLocalPersistence).catch((error: any) => {
     console.log('Error setting persistence:', error);
-    auth.setPersistence(browserLocalPersistence).catch((err) => {
+    auth.setPersistence(browserLocalPersistence).catch((err: any) => {
       console.log('Fallback persistence error:', err);
     });
   });
 } else {
-  auth.setPersistence(inMemoryPersistence).catch((error) => {
-    console.log('Error setting in-memory persistence:', error);
+  import('@react-native-async-storage/async-storage').then((AsyncStorageModule) => {
+    const AsyncStorage = AsyncStorageModule.default;
+    
+    const asyncStoragePersistence = {
+      async getItem(key: string): Promise<string | null> {
+        return AsyncStorage.getItem(key);
+      },
+      async setItem(key: string, value: string): Promise<void> {
+        return AsyncStorage.setItem(key, value);
+      },
+      async removeItem(key: string): Promise<void> {
+        return AsyncStorage.removeItem(key);
+      },
+    };
+    
+    auth.setPersistence(asyncStoragePersistence as any).catch((error: any) => {
+      console.log('Error setting AsyncStorage persistence:', error);
+    });
   });
 }
 
