@@ -56,8 +56,10 @@ function RootLayoutNav() {
         console.log('🚀🚀🚀 REDIRECTING TO DASHBOARD');
         try {
           console.log('🚀 Executing router.replace("/(tabs)")');
-          router.replace('/(tabs)');
-          console.log('✅ router.replace("/(tabs)") executed');
+          setTimeout(() => {
+            router.replace('/(tabs)');
+            console.log('✅ router.replace("/(tabs)") executed');
+          }, 100);
         } catch (error) {
           console.error('❌ router.replace failed:', error);
         }
