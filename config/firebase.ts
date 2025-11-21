@@ -1,6 +1,6 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, type Firestore, connectFirestoreEmulator } from "firebase/firestore";
 import { Platform } from "react-native";
 
 const firebaseConfig = {
@@ -44,6 +44,8 @@ if (Platform.OS === 'web') {
       console.log('⚠️ Persistence configuration warning:', error.message);
     }
   })();
+} else {
+  console.log('📱 Mobile platform - using default persistence');
 }
 
 const db: Firestore = getFirestore(app);
