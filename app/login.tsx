@@ -34,7 +34,10 @@ export default function LoginScreen() {
     const result = await login(email.trim(), password);
     setIsSubmitting(false);
 
-    if (!result.success) {
+    if (result.success) {
+      console.log('Login successful, redirecting to dashboard...');
+      router.replace('/(tabs)');
+    } else {
       Alert.alert('Login Failed', result.message);
     }
   };
