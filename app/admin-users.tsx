@@ -18,15 +18,25 @@ export default function AdminUsersScreen() {
   const { getAllUsers, updateUserStatus, isAdmin } = useAuth();
   const { subscribeToPlan, getAllPlans } = useSubscription();
   const [refreshKey, setRefreshKey] = React.useState(0);
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = React.useState(true);
 
   const plans = getAllPlans();
+
+  React.useEffect(() => {
+    const loadUsers = async () => {
+      setIsLoadingUsers(true);
+      const allUsers = await getAllUsers();
+      setUsers(allUsers);
+      setIsLoadingUsers(false);
+    };
+    loadUsers();
+  }, [getAllUsers, refreshKey]);
 
   if (!isAdmin) {
     router.back();
     return null;
   }
-
-  const users = getAllUsers();
 
   const handleApprove = (user: User) => {
     const selectedPlan = plans.find(p => p.id === user.selectedPlanId);

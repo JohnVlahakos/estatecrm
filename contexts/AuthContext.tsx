@@ -1,93 +1,92 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User, UserStatus } from '@/types';
+import { auth, db } from '@/config/firebase';
+import { 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { doc, setDoc, getDoc, collection, getDocs, query, where, updateDoc } from 'firebase/firestore';
 
-const STORAGE_KEYS = {
-  USERS: '@crm_users',
-  CURRENT_USER: '@crm_current_user',
-};
 
-const SUPER_ADMIN: User = {
-  id: 'super-admin-1',
-  email: 'admin@crm.com',
-  password: 'admin123',
-  name: 'Super Admin',
-  role: 'admin',
-  status: 'approved',
-  createdAt: new Date().toISOString(),
-};
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
-  const [users, setUsers] = useState<User[]>([SUPER_ADMIN]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const [usersData, currentUserData] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.USERS),
-        AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER),
-      ]);
-
-      if (usersData) {
-        const parsedUsers = JSON.parse(usersData);
-        const hasSuperAdmin = parsedUsers.some((u: User) => u.id === SUPER_ADMIN.id);
-        if (!hasSuperAdmin) {
-          const updatedUsers = [SUPER_ADMIN, ...parsedUsers];
-          setUsers(updatedUsers);
-          await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
-        } else {
-          setUsers(parsedUsers);
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      console.log('Firebase auth state changed:', fbUser?.email);
+      
+      if (fbUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as Omit<User, 'id'>;
+            setCurrentUser({ id: fbUser.uid, ...userData });
+            console.log('User loaded from Firestore:', userData.name);
+          } else {
+            console.log('User doc not found in Firestore');
+            setCurrentUser(null);
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          setCurrentUser(null);
         }
       } else {
-        setUsers([SUPER_ADMIN]);
-        await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify([SUPER_ADMIN]));
+        setCurrentUser(null);
       }
-
-      if (currentUserData) {
-        setCurrentUser(JSON.parse(currentUserData));
-      }
-    } catch (error) {
-      console.error('Error loading auth data:', error);
-    } finally {
+      
       setIsLoading(false);
-    }
-  };
+    });
 
-  const saveUsers = async (newUsers: User[]) => {
-    setUsers(newUsers);
-    await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(newUsers));
-  };
+    return () => unsubscribe();
+  }, []);
+
+
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
-    console.log('Login attempt:', email);
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    try {
+      console.log('Login attempt:', email);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const fbUser = userCredential.user;
+      
+      const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+      if (!userDoc.exists()) {
+        console.log('User doc not found');
+        await firebaseSignOut(auth);
+        return { success: false, message: 'User data not found' };
+      }
 
-    if (!user) {
-      console.log('Invalid credentials');
-      return { success: false, message: 'Invalid email or password' };
+      const userData = userDoc.data() as Omit<User, 'id'>;
+      
+      if (userData.status === 'pending') {
+        console.log('User pending approval');
+        await firebaseSignOut(auth);
+        return { success: false, message: 'Your account is pending approval by an administrator' };
+      }
+
+      if (userData.status === 'rejected') {
+        console.log('User rejected');
+        await firebaseSignOut(auth);
+        return { success: false, message: 'Your account has been rejected' };
+      }
+
+      console.log('Login successful:', userData.name);
+      return { success: true, message: 'Login successful' };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        return { success: false, message: 'Invalid email or password' };
+      }
+      if (error.code === 'auth/too-many-requests') {
+        return { success: false, message: 'Too many failed attempts. Please try again later.' };
+      }
+      return { success: false, message: error.message || 'Login failed' };
     }
-
-    if (user.status === 'pending') {
-      console.log('User pending approval');
-      return { success: false, message: 'Your account is pending approval by an administrator' };
-    }
-
-    if (user.status === 'rejected') {
-      console.log('User rejected');
-      return { success: false, message: 'Your account has been rejected' };
-    }
-
-    console.log('Login successful:', user.name);
-    setCurrentUser(user);
-    await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-    return { success: true, message: 'Login successful' };
-  }, [users]);
+  }, []);
 
   const register = useCallback(async (
     email: string,
@@ -95,72 +94,113 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     name: string,
     selectedPlanId: string
   ): Promise<{ success: boolean; message: string }> => {
-    console.log('Registration attempt:', email, 'Plan:', selectedPlanId);
+    try {
+      console.log('Registration attempt:', email, 'Plan:', selectedPlanId);
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const fbUser = userCredential.user;
+      
+      const newUserData: Omit<User, 'id'> = {
+        email,
+        password: '',
+        name,
+        role: 'user',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        selectedPlanId,
+      };
 
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-      console.log('Email already exists');
-      return { success: false, message: 'Email already registered' };
+      await setDoc(doc(db, 'users', fbUser.uid), newUserData);
+      console.log('User created in Firestore:', name);
+      
+      await firebaseSignOut(auth);
+      
+      return { success: true, message: 'Registration successful. Please wait for admin approval.' };
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        return { success: false, message: 'Email already registered' };
+      }
+      if (error.code === 'auth/weak-password') {
+        return { success: false, message: 'Password is too weak' };
+      }
+      if (error.code === 'auth/invalid-email') {
+        return { success: false, message: 'Invalid email address' };
+      }
+      return { success: false, message: error.message || 'Registration failed' };
     }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      password,
-      name,
-      role: 'user',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      selectedPlanId,
-    };
-
-    console.log('Creating new user:', newUser.name);
-    await saveUsers([...users, newUser]);
-    return { success: true, message: 'Registration successful. Please wait for admin approval.' };
-  }, [users]);
+  }, []);
 
   const logout = useCallback(async () => {
-    console.log('Logging out user...');
-    await AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-    setCurrentUser(null);
-    console.log('User logged out successfully');
+    try {
+      console.log('Logging out user...');
+      await firebaseSignOut(auth);
+      console.log('User logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   }, []);
 
   const updateUserStatus = useCallback(async (userId: string, status: UserStatus) => {
-    console.log('Updating user status:', userId, status);
-    const updatedUsers = users.map(u => u.id === userId ? { ...u, status } : u);
-    await saveUsers(updatedUsers);
-
-    if (currentUser?.id === userId) {
-      const updatedCurrentUser = { ...currentUser, status };
-      setCurrentUser(updatedCurrentUser);
-      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedCurrentUser));
+    try {
+      console.log('Updating user status:', userId, status);
+      await updateDoc(doc(db, 'users', userId), { status });
+      
+      if (currentUser?.id === userId) {
+        setCurrentUser({ ...currentUser, status });
+      }
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      throw error;
     }
-  }, [users, currentUser]);
+  }, [currentUser]);
 
   const updateUserProfile = useCallback(async (userId: string, updates: { name?: string; email?: string; password?: string; avatarUrl?: string }) => {
-    console.log('Updating user profile:', userId);
-    const updatedUsers = users.map(u => {
-      if (u.id === userId) {
-        return { ...u, ...updates };
+    try {
+      console.log('Updating user profile:', userId);
+      const updateData: any = {};
+      if (updates.name) updateData.name = updates.name;
+      if (updates.avatarUrl !== undefined) updateData.avatarUrl = updates.avatarUrl;
+      
+      await updateDoc(doc(db, 'users', userId), updateData);
+      
+      if (currentUser?.id === userId) {
+        setCurrentUser({ ...currentUser, ...updates });
       }
-      return u;
-    });
-    await saveUsers(updatedUsers);
-
-    if (currentUser?.id === userId) {
-      const updatedCurrentUser = { ...currentUser, ...updates };
-      setCurrentUser(updatedCurrentUser);
-      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedCurrentUser));
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
     }
-  }, [users, currentUser]);
+  }, [currentUser]);
 
-  const getPendingUsers = useCallback(() => {
-    return users.filter(u => u.status === 'pending');
-  }, [users]);
+  const getPendingUsers = useCallback(async () => {
+    try {
+      const q = query(collection(db, 'users'), where('status', '==', 'pending'));
+      const querySnapshot = await getDocs(q);
+      const pendingUsers: User[] = [];
+      querySnapshot.forEach((doc) => {
+        pendingUsers.push({ id: doc.id, ...doc.data() } as User);
+      });
+      return pendingUsers;
+    } catch (error) {
+      console.error('Error getting pending users:', error);
+      return [];
+    }
+  }, []);
 
-  const getAllUsers = useCallback(() => {
-    return users.filter(u => u.id !== SUPER_ADMIN.id);
-  }, [users]);
+  const getAllUsers = useCallback(async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'users'));
+      const allUsers: User[] = [];
+      querySnapshot.forEach((doc) => {
+        allUsers.push({ id: doc.id, ...doc.data() } as User);
+      });
+      return allUsers;
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
+  }, []);
 
   return useMemo(() => ({
     currentUser,

@@ -30,8 +30,18 @@ export default function SettingsScreen() {
   const [editPassword, setEditPassword] = useState('');
   const [editAvatarUrl, setEditAvatarUrl] = useState(currentUser?.avatarUrl || '');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-  const pendingCount = getPendingUsers().length;
+  const [pendingCount, setPendingCount] = useState(0);
   const subscriptionStatus = currentUser ? getSubscriptionStatus(currentUser.id) : null;
+
+  React.useEffect(() => {
+    const loadPendingCount = async () => {
+      const pendingUsers = await getPendingUsers();
+      setPendingCount(pendingUsers.length);
+    };
+    if (isAdmin) {
+      loadPendingCount();
+    }
+  }, [isAdmin, getPendingUsers]);
 
   React.useEffect(() => {
     setApiKey(googleMapsApiKey);
