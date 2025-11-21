@@ -34,6 +34,8 @@ export default function LoginScreen() {
     console.log('📲 Login button pressed');
     console.log('📧 Email:', email.trim());
     console.log('🔑 Password length:', password.length);
+    
+    Alert.alert('Debug', `Starting login for ${email}`);
     setIsSubmitting(true);
     
     console.log('⏳ Calling login function...');
@@ -47,6 +49,7 @@ export default function LoginScreen() {
       console.log('🚀 Auth state should change and navigation guard will handle redirect');
       console.log('⚠️ NOT manually redirecting - letting navigation guard handle it');
       console.log('=== LOGIN FLOW END (SUCCESS) ===\n');
+      Alert.alert('Debug', 'Login successful! Waiting for redirect...');
     } else {
       console.log('❌ Login failed:', result.message);
       console.log('=== LOGIN FLOW END (FAILED) ===\n');

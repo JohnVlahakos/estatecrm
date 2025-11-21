@@ -69,7 +69,13 @@ function RootLayoutNav() {
       });
       console.log('===== End =====\n');
       console.log('🚀 Executing redirect to /(tabs)...');
-      router.replace('/(tabs)');
+      console.log('🚀🚀🚀 CALLING router.replace("/(tabs)") NOW!');
+      try {
+        router.replace('/(tabs)');
+        console.log('✅ router.replace executed without error');
+      } catch (error) {
+        console.error('❌ router.replace failed:', error);
+      }
     } else if (isAuthenticated && !currentSegment) {
       console.log('✅ Authenticated at root, redirecting to tabs...');
       console.log('===== End =====\n');

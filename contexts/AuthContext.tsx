@@ -42,6 +42,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             });
             setCurrentUser(user);
             console.log('✅ currentUser state updated');
+            
+            if (userData.status === 'approved') {
+              console.log('✅✅✅ USER IS APPROVED - SHOULD TRIGGER NAVIGATION');
+            }
           } else {
             console.log('❌ User doc not found in Firestore for uid:', fbUser.uid);
             setCurrentUser(null);
