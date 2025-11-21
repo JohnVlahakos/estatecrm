@@ -50,7 +50,18 @@ export default function LoginScreen() {
     } else {
       console.log('❌ Login failed:', result.message);
       console.log('=== LOGIN FLOW END (FAILED) ===\n');
-      Alert.alert('Login Failed', result.message);
+      
+      let errorTitle = 'Login Failed';
+      let errorMessage = result.message;
+      
+      if (result.message.includes('Network') || result.message.includes('network')) {
+        errorTitle = '🌐 Connection Error';
+        errorMessage = Platform.OS === 'web' 
+          ? 'Cannot connect to Firebase. Please:\n\n1. Disable ad blockers (uBlock Origin, Privacy Badger)\n2. Disable privacy extensions\n3. Try incognito mode\n4. Check your internet connection\n5. Try a different browser'
+          : result.message;
+      }
+      
+      Alert.alert(errorTitle, errorMessage);
     }
   };
 

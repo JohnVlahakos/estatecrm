@@ -51,6 +51,25 @@ if (Platform.OS === 'web') {
 const db: Firestore = getFirestore(app);
 console.log('✅ Firestore initialized');
 
+if (Platform.OS === 'web') {
+  console.log('🌐 Testing Firebase connectivity...');
+  fetch('https://estatecrm-52217.firebaseapp.com/__/auth/handler')
+    .then(() => console.log('✅ Firebase auth domain is reachable'))
+    .catch((error) => {
+      console.error('❌ Cannot reach Firebase auth domain:', error);
+      console.error('⚠️ POSSIBLE CAUSES:');
+      console.error('   1. Ad blocker or privacy extension blocking Firebase');
+      console.error('   2. Corporate firewall blocking Firebase');
+      console.error('   3. Browser security settings');
+      console.error('   4. No internet connection');
+      console.error('💡 SOLUTIONS:');
+      console.error('   - Disable ad blockers (uBlock Origin, Privacy Badger, etc.)');
+      console.error('   - Try in incognito mode');
+      console.error('   - Try a different browser');
+      console.error('   - Check your internet connection');
+    });
+}
+
 console.log('🚀 Firebase ready!');
 
 export { auth, db, app };
