@@ -16,75 +16,30 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading, currentUser } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    console.log('\n🔄 ===== RootLayoutNav useEffect triggered =====');
-    console.log('📊 Auth State:', { 
-      isAuthenticated, 
-      isLoading, 
-      hasUser: !!currentUser, 
-      userEmail: currentUser?.email,
-      userStatus: currentUser?.status,
-      userRole: currentUser?.role
-    });
-    console.log('📍 Current segments:', JSON.stringify(segments));
+    console.log('\n🔄 Navigation Guard Check');
+    console.log('Auth:', { isAuthenticated, isLoading });
+    console.log('Segments:', segments);
     
     if (isLoading) {
-      console.log('⏳ Still loading auth state, waiting...');
-      console.log('===== End =====\n');
+      console.log('Loading auth state...');
       return;
     }
 
-    const currentSegment = segments[0];
-    const inAuthGroup = currentSegment === '(tabs)' || currentSegment === 'admin-users' || currentSegment === 'admin-subscriptions' || currentSegment === 'subscription' || currentSegment === 'admin-cities';
-    const isLoginOrRegister = currentSegment === 'login' || currentSegment === 'register';
+    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'admin-users' || segments[0] === 'admin-subscriptions' || segments[0] === 'subscription' || segments[0] === 'admin-cities';
 
-    console.log('🛣️  Navigation guard check:', { 
-      isAuthenticated, 
-      currentSegment, 
-      inAuthGroup, 
-      isLoginOrRegister,
-      segmentsLength: segments.length
-    });
-
-    if (isAuthenticated) {
-      console.log('✅ User is authenticated');
-      if (isLoginOrRegister || !currentSegment) {
-        console.log('🚀🚀🚀 REDIRECTING TO DASHBOARD');
-        try {
-          console.log('🚀 Executing router.replace("/(tabs)")');
-          setTimeout(() => {
-            router.replace('/(tabs)');
-            console.log('✅ router.replace("/(tabs)") executed');
-          }, 100);
-        } catch (error) {
-          console.error('❌ router.replace failed:', error);
-        }
-        console.log('===== End =====\n');
-        return;
-      }
-      console.log('✔️  User authenticated and already in app');
-      console.log('===== End =====\n');
-    } else {
-      console.log('❌ User is NOT authenticated');
-      if (inAuthGroup || !currentSegment) {
-        console.log('🔙 Redirecting to login...');
-        try {
-          router.replace('/login');
-          console.log('✅ Redirected to login');
-        } catch (error) {
-          console.error('❌ Login redirect failed:', error);
-        }
-        console.log('===== End =====\n');
-        return;
-      }
-      console.log('✔️  User on login/register page');
-      console.log('===== End =====\n');
+    if (!isAuthenticated && inAuthGroup) {
+      console.log('🔄 Not authenticated, redirecting to login');
+      router.replace('/login');
+    } else if (isAuthenticated && (segments[0] === 'login' || segments[0] === 'register')) {
+      console.log('🔄 Authenticated, redirecting to dashboard');
+      router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments, router, currentUser]);
+  }, [isAuthenticated, isLoading, segments, router]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
