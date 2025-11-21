@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, type Firestore } from "firebase/firestore";
 import { Platform } from "react-native";
 
 const firebaseConfig = {
@@ -15,8 +15,13 @@ const firebaseConfig = {
 
 console.log('🔥 Firebase initialization starting...');
 console.log('📍 Platform:', Platform.OS);
+console.log('🌐 Config:', {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  hasApiKey: !!firebaseConfig.apiKey
+});
 
-const app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
+const app: FirebaseApp = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
 console.log('✅ Firebase app initialized');
 
 const auth: Auth = getAuth(app);
@@ -25,20 +30,25 @@ console.log('✅ Firebase auth initialized');
 if (Platform.OS === 'web') {
   (async () => {
     try {
-      const { indexedDBLocalPersistence, browserLocalPersistence } = await import('firebase/auth');
-      await auth.setPersistence(indexedDBLocalPersistence).catch(() => {
-        console.log('⚠️ Falling back to browserLocalPersistence');
-        return auth.setPersistence(browserLocalPersistence);
-      });
-      console.log('✅ Web persistence configured');
+      const { browserLocalPersistence, indexedDBLocalPersistence, setPersistence } = await import('firebase/auth');
+      
+      try {
+        await setPersistence(auth, indexedDBLocalPersistence);
+        console.log('✅ IndexedDB persistence configured');
+      } catch {
+        console.log('⚠️ IndexedDB not available, using browserLocalPersistence');
+        await setPersistence(auth, browserLocalPersistence);
+        console.log('✅ Browser localStorage persistence configured');
+      }
     } catch (error: any) {
       console.log('⚠️ Persistence configuration warning:', error.message);
     }
   })();
 }
 
-const db = getFirestore(app);
+const db: Firestore = getFirestore(app);
 console.log('✅ Firestore initialized');
+
 console.log('🚀 Firebase ready!');
 
 export { auth, db, app };

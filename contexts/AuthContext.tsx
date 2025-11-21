@@ -74,9 +74,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
       console.log('🔐 Login attempt started:', email);
-      console.log('🌐 Checking network connectivity...');
-      console.log('🔥 Firebase auth instance:', auth ? 'initialized' : 'not initialized');
-      console.log('🔥 Firebase app:', app ? app.name : 'not initialized');
+      console.log('🌐 Checking Firebase initialization...');
+      
+      if (!auth || !app) {
+        console.error('❌ Firebase not properly initialized!');
+        return { 
+          success: false, 
+          message: 'App initialization error. Please refresh the page and try again.' 
+        };
+      }
+      
+      console.log('✅ Firebase auth instance:', auth ? 'initialized' : 'not initialized');
+      console.log('✅ Firebase app:', app ? app.name : 'not initialized');
       
       let userCredential;
       try {
@@ -94,11 +103,18 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           console.error('❌ Network request failed - possible causes:');
           console.error('   1. No internet connection');
           console.error('   2. Firebase project configuration issue');
-          console.error('   3. CORS/network blocking');
+          console.error('   3. CORS/network blocking (web)');
           console.error('   4. Invalid Firebase credentials in config');
+          console.error('   5. Ad blockers or security extensions blocking Firebase');
+          
+          if (typeof window !== 'undefined') {
+            console.error('🌐 Running on web - check browser console for CORS errors');
+            console.error('🌐 Try disabling ad blockers and privacy extensions');
+          }
+          
           return { 
             success: false, 
-            message: 'Network error: Unable to connect to authentication service. Please check your internet connection.' 
+            message: 'Cannot connect to server. If on web, try disabling ad blockers or check your internet connection. Error: Network request failed.' 
           };
         }
         
