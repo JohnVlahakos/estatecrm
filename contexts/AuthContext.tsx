@@ -6,7 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  deleteUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, getDocs, query, where, updateDoc } from 'firebase/firestore';
 
@@ -94,11 +95,13 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     name: string,
     selectedPlanId: string
   ): Promise<{ success: boolean; message: string }> => {
+    let fbUser = null;
     try {
       console.log('Registration attempt:', email, 'Plan:', selectedPlanId);
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const fbUser = userCredential.user;
+      fbUser = userCredential.user;
+      console.log('Firebase Auth user created:', fbUser.uid);
       
       const newUserData: Omit<User, 'id'> = {
         email,
@@ -110,6 +113,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         selectedPlanId,
       };
 
+      console.log('Creating Firestore document...');
       await setDoc(doc(db, 'users', fbUser.uid), newUserData);
       console.log('User created in Firestore:', name);
       
@@ -118,14 +122,30 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       return { success: true, message: 'Registration successful. Please wait for admin approval.' };
     } catch (error: any) {
       console.error('Registration error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      if (fbUser && error.code !== 'auth/email-already-in-use') {
+        try {
+          console.log('Firestore creation failed, deleting auth user...');
+          await deleteUser(fbUser);
+          console.log('Auth user deleted successfully');
+        } catch (deleteError) {
+          console.error('Failed to delete auth user:', deleteError);
+        }
+      }
+      
       if (error.code === 'auth/email-already-in-use') {
-        return { success: false, message: 'Email already registered' };
+        return { success: false, message: 'Email already registered. If you just registered, please wait for admin approval before logging in.' };
       }
       if (error.code === 'auth/weak-password') {
         return { success: false, message: 'Password is too weak' };
       }
       if (error.code === 'auth/invalid-email') {
         return { success: false, message: 'Invalid email address' };
+      }
+      if (error.code === 'permission-denied') {
+        return { success: false, message: 'Permission denied. Please contact support.' };
       }
       return { success: false, message: error.message || 'Registration failed' };
     }
