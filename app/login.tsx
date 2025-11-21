@@ -34,9 +34,7 @@ export default function LoginScreen() {
     const result = await login(email.trim(), password);
     setIsSubmitting(false);
 
-    if (result.success) {
-      router.replace('/(tabs)');
-    } else {
+    if (!result.success) {
       Alert.alert('Login Failed', result.message);
     }
   };

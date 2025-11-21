@@ -21,18 +21,27 @@ function RootLayoutNav() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) {
+      console.log('Still loading auth state...');
+      return;
+    }
 
     const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'admin-users' || segments[0] === 'admin-subscriptions' || segments[0] === 'subscription' || segments[0] === 'admin-cities';
     const isLoginOrRegister = segments[0] === 'login' || segments[0] === 'register';
 
-    console.log('Auth state:', { isAuthenticated, isLoading, segments, inAuthGroup, isLoginOrRegister });
+    console.log('Navigation guard check:', { 
+      isAuthenticated, 
+      isLoading, 
+      currentSegment: segments[0], 
+      inAuthGroup, 
+      isLoginOrRegister 
+    });
 
     if (!isAuthenticated && inAuthGroup) {
-      console.log('Not authenticated, redirecting to login...');
+      console.log('Not authenticated in protected route, redirecting to login...');
       router.replace('/login');
     } else if (isAuthenticated && isLoginOrRegister) {
-      console.log('Authenticated, redirecting to tabs...');
+      console.log('Authenticated on auth page, redirecting to tabs...');
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, segments, isLoading, router]);
