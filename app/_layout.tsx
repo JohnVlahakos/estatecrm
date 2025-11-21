@@ -31,7 +31,6 @@ function RootLayoutNav() {
       userRole: currentUser?.role
     });
     console.log('📍 Current segments:', segments);
-    console.log('📍 Full segments array:', JSON.stringify(segments));
     
     if (isLoading) {
       console.log('⏳ Still loading auth state, waiting...');
@@ -45,47 +44,29 @@ function RootLayoutNav() {
 
     console.log('🛣️  Navigation guard check:', { 
       isAuthenticated, 
-      isLoading, 
       currentSegment, 
       inAuthGroup, 
       isLoginOrRegister,
-      segments: segments.join('/'),
-      allSegments: segments,
       segmentsLength: segments.length
     });
 
-    if (!isAuthenticated && inAuthGroup) {
-      console.log('❌ Not authenticated in protected route, redirecting to login...');
-      console.log('===== End =====\n');
-      router.replace('/login');
-    } else if (isAuthenticated && isLoginOrRegister) {
-      console.log('✅ Authenticated on login/register page, redirecting to dashboard...');
-      console.log('🔍 Auth check details:', {
-        isAuthenticatedValue: isAuthenticated,
-        currentUserExists: !!currentUser,
-        currentUserStatus: currentUser?.status,
-        isLoginOrRegisterValue: isLoginOrRegister,
-        currentSegmentValue: currentSegment
-      });
-      console.log('===== End =====\n');
-      console.log('🚀 Executing redirect to /(tabs)...');
-      console.log('🚀🚀🚀 CALLING router.replace("/(tabs)") NOW!');
-      try {
+    if (isAuthenticated) {
+      if (isLoginOrRegister || !currentSegment) {
+        console.log('✅ User authenticated, redirecting to dashboard...');
+        console.log('===== End =====\n');
         router.replace('/(tabs)');
-        console.log('✅ router.replace executed without error');
-      } catch (error) {
-        console.error('❌ router.replace failed:', error);
+        return;
       }
-    } else if (isAuthenticated && !currentSegment) {
-      console.log('✅ Authenticated at root, redirecting to tabs...');
+      console.log('✔️  User authenticated and already in app');
       console.log('===== End =====\n');
-      router.replace('/(tabs)');
-    } else if (!isAuthenticated && !currentSegment) {
-      console.log('❌ Not authenticated at root, redirecting to login...');
-      console.log('===== End =====\n');
-      router.replace('/login');
     } else {
-      console.log('✔️  No navigation needed, user is in correct place');
+      if (inAuthGroup || !currentSegment) {
+        console.log('❌ Not authenticated, redirecting to login...');
+        console.log('===== End =====\n');
+        router.replace('/login');
+        return;
+      }
+      console.log('✔️  User on login/register page');
       console.log('===== End =====\n');
     }
   }, [isAuthenticated, isLoading, segments, router, currentUser]);
