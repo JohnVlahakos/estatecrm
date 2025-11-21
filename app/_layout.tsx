@@ -42,19 +42,31 @@ function RootLayoutNav() {
 
     if (!isAuthenticated && inAuthGroup) {
       console.log('Not authenticated in protected route, redirecting to login...');
-      router.replace('/login');
       navigationAttempted.current = false;
-    } else if (isAuthenticated && isLoginOrRegister && !navigationAttempted.current) {
-      console.log('Authenticated on login/register page, redirecting to tabs...');
-      navigationAttempted.current = true;
-      setTimeout(() => {
+      router.replace('/login');
+    } else if (isAuthenticated && isLoginOrRegister) {
+      console.log('Authenticated on login/register page, checking redirect...');
+      if (!navigationAttempted.current) {
+        console.log('Redirecting to tabs...');
+        navigationAttempted.current = true;
         router.replace('/(tabs)');
-      }, 50);
+      } else {
+        console.log('Navigation already attempted, skipping...');
+      }
     } else if (isAuthenticated && !currentSegment) {
       console.log('Authenticated at root, redirecting to tabs...');
       router.replace('/(tabs)');
+    } else if (!isAuthenticated && !currentSegment) {
+      console.log('Not authenticated at root, redirecting to login...');
+      router.replace('/login');
     }
   }, [isAuthenticated, isLoading, segments, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigationAttempted.current = false;
+    }
+  }, [isAuthenticated]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>

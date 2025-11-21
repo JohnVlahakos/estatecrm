@@ -38,14 +38,14 @@ export default function DashboardScreen() {
 
   const recentActivities = useMemo(() => {
     const activities = [
-      ...clients.slice(0, 3).map(c => ({
-        id: `client-${c.id}`,
+      ...clients.slice(0, 3).map((c, idx) => ({
+        id: `client-${c.id}-${idx}`,
         type: 'client' as const,
         title: `New client: ${c.name}`,
         date: c.createdAt,
       })),
-      ...properties.slice(0, 3).map(p => ({
-        id: `property-${p.id}`,
+      ...properties.slice(0, 3).map((p, idx) => ({
+        id: `property-${p.id}-${idx}`,
         type: 'property' as const,
         title: `New property: ${p.title}`,
         date: p.createdAt,
@@ -54,7 +54,11 @@ export default function DashboardScreen() {
 
     return activities
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
+      .slice(0, 5)
+      .map((activity, finalIdx) => ({
+        ...activity,
+        id: `activity-${finalIdx}-${activity.id}`,
+      }));
   }, [clients, properties]);
 
   if (isLoading) {
