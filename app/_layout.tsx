@@ -30,7 +30,7 @@ function RootLayoutNav() {
       userStatus: currentUser?.status,
       userRole: currentUser?.role
     });
-    console.log('📍 Current segments:', segments);
+    console.log('📍 Current segments:', JSON.stringify(segments));
     
     if (isLoading) {
       console.log('⏳ Still loading auth state, waiting...');
@@ -51,21 +51,25 @@ function RootLayoutNav() {
     });
 
     if (isAuthenticated) {
+      console.log('✅ User is authenticated');
       if (isLoginOrRegister || !currentSegment) {
         console.log('✅ ✅ ✅ User authenticated, REDIRECTING TO DASHBOARD NOW...');
         console.log('🚀 Calling router.replace("/(tabs)")');
-        try {
-          router.replace('/(tabs)');
-          console.log('✅ router.replace called successfully');
-        } catch (error) {
-          console.error('❌ router.replace failed:', error);
-        }
+        setTimeout(() => {
+          try {
+            router.replace('/(tabs)');
+            console.log('✅ router.replace called successfully');
+          } catch (error) {
+            console.error('❌ router.replace failed:', error);
+          }
+        }, 100);
         console.log('===== End =====\n');
         return;
       }
       console.log('✔️  User authenticated and already in app');
       console.log('===== End =====\n');
     } else {
+      console.log('❌ User is NOT authenticated');
       if (inAuthGroup || !currentSegment) {
         console.log('❌ Not authenticated, redirecting to login...');
         console.log('===== End =====\n');
