@@ -63,9 +63,6 @@ function RootLayoutNav() {
         }} 
       />
       <Stack.Screen name="subscription" options={{ headerShown: false }} />
-      <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: "Client Details" }} />
-      <Stack.Screen name="properties/[id]" options={{ headerShown: true, title: "Property Details" }} />
-      <Stack.Screen name="appointments/[id]" options={{ headerShown: true, title: "Appointment Details" }} />
     </Stack>
   );
 }
