@@ -303,19 +303,28 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     }
   }, []);
 
-  return useMemo(() => ({
-    currentUser,
-    isLoading,
-    isAuthenticated: currentUser !== null && currentUser.status === 'approved',
-    isAdmin: currentUser?.role === 'admin',
-    login,
-    register,
-    logout,
-    updateUserStatus,
-    updateUserProfile,
-    getPendingUsers,
-    getAllUsers,
-  }), [
+  const authValue = useMemo(() => {
+    const isAuthenticated = currentUser !== null && currentUser.status === 'approved';
+    console.log('🔐 Auth value computed:', {
+      hasUser: !!currentUser,
+      userStatus: currentUser?.status,
+      isAuthenticated,
+      isLoading
+    });
+    return {
+      currentUser,
+      isLoading,
+      isAuthenticated,
+      isAdmin: currentUser?.role === 'admin',
+      login,
+      register,
+      logout,
+      updateUserStatus,
+      updateUserProfile,
+      getPendingUsers,
+      getAllUsers,
+    };
+  }, [
     currentUser,
     isLoading,
     login,
@@ -326,4 +335,6 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     getPendingUsers,
     getAllUsers,
   ]);
+
+  return authValue;
 });

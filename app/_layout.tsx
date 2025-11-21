@@ -21,12 +21,20 @@ function RootLayoutNav() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('🔄 RootLayoutNav useEffect triggered');
-    console.log('📊 Auth State:', { isAuthenticated, isLoading, hasUser: !!currentUser, userEmail: currentUser?.email });
+    console.log('\n🔄 ===== RootLayoutNav useEffect triggered =====');
+    console.log('📊 Auth State:', { 
+      isAuthenticated, 
+      isLoading, 
+      hasUser: !!currentUser, 
+      userEmail: currentUser?.email,
+      userStatus: currentUser?.status,
+      userRole: currentUser?.role
+    });
     console.log('📍 Current segments:', segments);
     
     if (isLoading) {
       console.log('⏳ Still loading auth state, waiting...');
+      console.log('===== End =====\n');
       return;
     }
 
@@ -46,18 +54,26 @@ function RootLayoutNav() {
 
     if (!isAuthenticated && inAuthGroup) {
       console.log('❌ Not authenticated in protected route, redirecting to login...');
+      console.log('===== End =====\n');
       router.replace('/login');
     } else if (isAuthenticated && isLoginOrRegister) {
       console.log('✅ Authenticated on login/register page, redirecting to dashboard...');
-      router.replace('/(tabs)');
+      console.log('===== End =====\n');
+      setTimeout(() => {
+        console.log('🚀 Executing redirect to /(tabs)...');
+        router.replace('/(tabs)');
+      }, 100);
     } else if (isAuthenticated && !currentSegment) {
       console.log('✅ Authenticated at root, redirecting to tabs...');
+      console.log('===== End =====\n');
       router.replace('/(tabs)');
     } else if (!isAuthenticated && !currentSegment) {
       console.log('❌ Not authenticated at root, redirecting to login...');
+      console.log('===== End =====\n');
       router.replace('/login');
     } else {
       console.log('✔️  No navigation needed, user is in correct place');
+      console.log('===== End =====\n');
     }
   }, [isAuthenticated, isLoading, segments, router, currentUser]);
 
