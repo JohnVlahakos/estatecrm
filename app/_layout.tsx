@@ -26,13 +26,14 @@ function RootLayoutNav() {
       return;
     }
 
-    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'admin-users' || segments[0] === 'admin-subscriptions' || segments[0] === 'subscription' || segments[0] === 'admin-cities';
-    const isLoginOrRegister = segments[0] === 'login' || segments[0] === 'register';
+    const currentSegment = segments[0];
+    const inAuthGroup = currentSegment === '(tabs)' || currentSegment === 'admin-users' || currentSegment === 'admin-subscriptions' || currentSegment === 'subscription' || currentSegment === 'admin-cities';
+    const isLoginOrRegister = currentSegment === 'login' || currentSegment === 'register';
 
     console.log('Navigation guard check:', { 
       isAuthenticated, 
       isLoading, 
-      currentSegment: segments[0], 
+      currentSegment, 
       inAuthGroup, 
       isLoginOrRegister 
     });
@@ -40,8 +41,11 @@ function RootLayoutNav() {
     if (!isAuthenticated && inAuthGroup) {
       console.log('Not authenticated in protected route, redirecting to login...');
       router.replace('/login');
-    } else if (isAuthenticated && (isLoginOrRegister || !segments[0])) {
-      console.log('Authenticated, redirecting to tabs...');
+    } else if (isAuthenticated && isLoginOrRegister) {
+      console.log('Authenticated on login/register page, redirecting to tabs...');
+      router.replace('/(tabs)');
+    } else if (isAuthenticated && !currentSegment) {
+      console.log('Authenticated at root, redirecting to tabs...');
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, segments, isLoading, router]);
